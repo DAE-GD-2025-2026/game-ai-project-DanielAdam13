@@ -49,3 +49,21 @@ public:
 
 private:
 };
+
+class Arrive : public Seek
+{
+public:
+	Arrive();
+	virtual ~Arrive() override = default;
+
+	// Arrive Behaviour
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+protected:
+	FVector2D maxLinVelocity;
+	
+	const float outerRadius;
+	const float innerRadius;
+
+private:
+};
+
