@@ -30,40 +30,79 @@ class Seek : public ISteeringBehavior
 {
 public:
 	Seek() = default;
-	virtual ~Seek() = default;
+	virtual ~Seek() override = default;
 
 	// Seek Behaviour
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 
-private:
+protected:
 };
 
 class Flee : public ISteeringBehavior
 {
 public:
 	Flee() = default;
-	virtual ~Flee() = default;
+	virtual ~Flee() override = default;
 
 	// Flee Behaviour
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 
-private:
+protected:
 };
 
 class Arrive : public Seek
 {
 public:
-	Arrive();
+	Arrive() = default;
 	virtual ~Arrive() override = default;
 
 	// Arrive Behaviour
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 protected:
-	FVector2D maxLinVelocity;
+	FVector2D m_MaxLinearVelocity{};
 	
-	const float outerRadius;
-	const float innerRadius;
+	const float m_OuterRadius{ 300.f };
+	const float m_InnerRadius{ 20.f };
 
+private:
+};
+
+class Face : public ISteeringBehavior
+{
+public:
+	Face() = default;
+	virtual ~Face() override = default;
+
+	// Face Behaviour
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+protected:
+};
+
+class Wander : public Seek
+{
+public:
+	Wander();
+	virtual ~Wander() override = default;
+
+	// Wander Logic
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+
+
+protected:
+	const float m_OffsetDistance{ 30.f };
+	const float m_WanderRadius{ 60.f };
+
+	const float m_MaxAngleChange{ FMath::DegreesToRadians(45.f) };
+
+	const float m_MaxTargetChangeInterval{ 2.f };
+
+	FTargetData m_NewTarget;
+
+	float m_OnSwitchAngle{};
+	float m_LastOnSwitchAngle{};
+
+	virtual FVector2D GetRandomPointInCircle();
+	
 private:
 };
 

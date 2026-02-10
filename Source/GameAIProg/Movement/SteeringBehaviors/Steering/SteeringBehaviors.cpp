@@ -23,13 +23,6 @@ SteeringOutput Flee::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     return Steering;
 }
 
-Arrive::Arrive()
-    : maxLinVelocity{},
-    outerRadius{ 300.f },
-    innerRadius{ 20.f }
-{
-}
-
 SteeringOutput Arrive::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 {
     SteeringOutput Steering{};
@@ -37,21 +30,71 @@ SteeringOutput Arrive::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     FVector2D agentToTargetVector{ Target.Position - Agent.GetPosition() };
     float agentToTargetVectorLength{ float(agentToTargetVector.Length()) };
 
-    if (agentToTargetVectorLength > outerRadius)
+    // Outside outer radius
+    if (agentToTargetVectorLength > m_OuterRadius)
     {
-        maxLinVelocity = Seek::CalculateSteering(deltaT, Agent).LinearVelocity;
-        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("Outside outer"));
-        Steering.LinearVelocity = maxLinVelocity;
+        m_MaxLinearVelocity = Seek::CalculateSteering(deltaT, Agent).LinearVelocity;
+        Steering.LinearVelocity = m_MaxLinearVelocity;
     }
-    else if (agentToTargetVectorLength > innerRadius)
+    // Between radiuses - slow down
+    else if (agentToTargetVectorLength > m_InnerRadius)
     {
-        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("Inside outer"));
-        Steering.LinearVelocity = agentToTargetVector / (outerRadius - innerRadius);
+        Steering.LinearVelocity = agentToTargetVector / (m_OuterRadius - m_InnerRadius);
     }
-    else
-    {
-        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("Inside inner"));
-    }
+    // Else it is default initialized -> 0f
 
     return Steering;
+}
+
+SteeringOutput Face::CalculateSteering(float deltaT, ASteeringAgent& Agent)
+{
+    SteeringOutput Steering{};
+
+    //Steering.AngularVelocity = Target.Orientation - Agent.GetRotation();
+
+    return Steering;
+}
+
+Wander::Wander()
+    : m_NewTarget{}
+{
+    m_NewTarget.Position = GetRandomPointInCircle();
+    ISteeringBehavior::SetTarget(m_NewTarget);
+}
+
+SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
+{
+    SteeringOutput Steering{};
+
+    static float changeTimer{ m_MaxTargetChangeInterval };
+    
+    changeTimer += deltaT;
+    if (changeTimer >= m_MaxTargetChangeInterval)
+    {
+        m_NewTarget.Position = GetRandomPointInCircle();
+        ISteeringBehavior::SetTarget(m_NewTarget);
+
+        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, m_NewTarget.Position.ToString());
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("Switched"));
+
+        changeTimer -= m_MaxTargetChangeInterval;
+    }
+
+    Steering = Seek::CalculateSteering(deltaT, Agent);
+
+    return Steering;
+}
+
+FVector2D Wander::GetRandomPointInCircle()
+{
+    const float angle{ FMath::FRandRange(m_LastOnSwitchAngle - m_MaxAngleChange, m_LastOnSwitchAngle + m_MaxAngleChange) };
+
+    const double doubRadius{ double(m_WanderRadius) };
+
+    const FVector2D newPoint{ m_OffsetDistance + doubRadius * FMath::Cos(angle), m_OffsetDistance + doubRadius * FMath::Sin(angle) };
+
+
+    m_LastOnSwitchAngle = angle;
+
+    return newPoint;
 }
