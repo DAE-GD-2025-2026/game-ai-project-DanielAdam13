@@ -241,6 +241,7 @@ void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent)
 		break;
 	case BehaviorTypes::Wander:
 		Agent.Behavior = std::make_unique<Wander>();
+		break;
 	default:
 		assert(false); // Incorrect Agent Behavior gotten during SetAgentBehavior()	
 	}
@@ -266,6 +267,12 @@ void ALevel_SteeringBehaviors::UpdateTarget(ImGui_Agent& Agent)
 	// Note: MouseTarget position is updated via Level BP every click
 	
 	bool const bUseMouseAsTarget = Agent.SelectedTarget < 0;
+
+	if (Agent.SelectedBehavior == static_cast<int>(BehaviorTypes::Wander))
+	{
+		return;
+	}
+
 	if (!bUseMouseAsTarget)
 	{
 		ASteeringAgent* const TargetAgent = SteeringAgents[Agent.SelectedTarget].Agent;

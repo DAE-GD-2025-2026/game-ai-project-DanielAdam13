@@ -9,14 +9,17 @@
 
 SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
-    // Draw target point
-    DrawDebugSphere(
-        GWorld,
-        FVector(Target.Position, Agent.GetActorLocation().Z),
-        10.f,
-        12,
-        FColor::Red
-    );
+    if (GWorld)
+    {
+        // Draw target point
+        DrawDebugSphere(
+            GWorld,
+            FVector(Target.Position, Agent.GetActorLocation().Z),
+            10.f,
+            12,
+            FColor::Red
+        );
+    }
 
     return SteeringOutput();
 }
@@ -96,84 +99,60 @@ SteeringOutput Face::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     return Steering;
 }
 
-Wander::Wander()
-    : m_NewTarget{}
-{
-    m_NewTarget.Position = GetRandomPointInCircle();
-    ISteeringBehavior::SetTarget(m_NewTarget);
-}
-
 SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 {
-    ISteeringBehavior::CalculateSteering(deltaT, Agent);
     SteeringOutput Steering{};
 
-    static float changeTimer{ m_MaxTargetChangeInterval };
+    //static float changeTimer{ m_MaxTargetChangeInterval };
+
+    const FVector2D CircleCenter{ Agent.GetActorLocation() + Agent.GetActorForwardVector() * m_OffsetDistance };
     
-    changeTimer += deltaT;
-    if (changeTimer >= m_MaxTargetChangeInterval)
+    
+    m_ChangeTimer += deltaT;
+    if (m_ChangeTimer >= m_MaxTargetChangeInterval)
     {
-        m_NewTarget.Position = GetRandomPointInCircle();
-        ISteeringBehavior::SetTarget(m_NewTarget);
+        FTargetData newTarget{};
+        newTarget.Position = GetRandomPointInCircle(CircleCenter);
+        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::SanitizeFloat(newTarget.Position.X) + ", " + FString::SanitizeFloat(newTarget.Position.Y));
+        ISteeringBehavior::SetTarget(newTarget);
+        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::SanitizeFloat(Target.Position.X) + ", " + FString::SanitizeFloat(Target.Position.Y));
 
-        //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, m_NewTarget.Position.ToString());
-        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, TEXT("Switched"));
-
-        changeTimer -= m_MaxTargetChangeInterval;
+        m_ChangeTimer -= m_MaxTargetChangeInterval;
     }
-
-    Steering = Seek::CalculateSteering(deltaT, Agent);
-
-    // Agent position and forward direction
-    FVector AgentPos = Agent.GetActorLocation();
-    FVector ForwardDir = Agent.GetActorForwardVector();
-
-    FVector CircleCenter = AgentPos + ForwardDir * m_OffsetDistance;
 
     // Draw the circle
     if (GWorld)
     {
         DrawDebugCircle(
-            GWorld,                     // world
-            CircleCenter,               // center
-            m_WanderRadius,             // radius
-            32,                         // segments
-            FColor::Blue,               // color
-            false,                      // persistent
-            -1.f,                       // lifetime
-            0,                          // depth priority
-            2.f,                        // thickness
-            FVector(1, 0, 0),             // X axis
-            FVector(0, 1, 0),             // Y axis
-            true                        // draw axis (true = circle in XY plane)
-        );
-
-        // Optionally draw the agent’s forward vector
-        DrawDebugLine(
             GWorld,
-            AgentPos,
-            CircleCenter,
-            FColor::Red,
-            false,
-            -1.f,
-            0,
-            2.f
+            FVector(CircleCenter.X, CircleCenter.Y, 0), // center
+            m_WanderRadius,  
+            32, 
+            FColor::Blue, 
+            false, 
+            -1.f, 
+            0,   
+            2.f,  
+            FVector(1, 0, 0), 
+            FVector(0, 1, 0), 
+            true 
         );
     }
+
+    Steering = Seek::CalculateSteering(deltaT, Agent);
 
     return Steering;
 }
 
-FVector2D Wander::GetRandomPointInCircle()
+FVector2D Wander::GetRandomPointInCircle(const FVector2D& circleCenter)
 {
-    const float angle{ FMath::FRandRange(m_LastOnSwitchAngle - m_MaxAngleChange, m_LastOnSwitchAngle + m_MaxAngleChange) };
+    const float angle{ m_LastOnSwitchAngle + FMath::FRandRange(-m_MaxAngleChange, m_MaxAngleChange) };
 
-    const double doubRadius{ double(m_WanderRadius) };
+    const FVector2D offset{ FVector2D(FMath::Cos(angle), FMath::Sin(angle)) * m_WanderRadius };
 
-    const FVector2D newPoint{ m_OffsetDistance + doubRadius * FMath::Cos(angle), m_OffsetDistance + doubRadius * FMath::Sin(angle) };
-
+    const FVector2D wanderTargetPos{ circleCenter + offset };
 
     m_LastOnSwitchAngle = angle;
 
-    return newPoint;
+    return wanderTargetPos;
 }

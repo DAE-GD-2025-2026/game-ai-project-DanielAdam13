@@ -81,7 +81,7 @@ protected:
 class Wander : public Seek
 {
 public:
-	Wander();
+	Wander() = default;
 	virtual ~Wander() override = default;
 
 	// Wander Logic
@@ -89,19 +89,18 @@ public:
 
 
 protected:
-	const float m_OffsetDistance{ 400.f };
+	const float m_OffsetDistance{ 200.f };
 	const float m_WanderRadius{ 120.f };
 
 	const float m_MaxAngleChange{ FMath::DegreesToRadians(45.f) };
 
-	const float m_MaxTargetChangeInterval{ 2.f };
-
-	FTargetData m_NewTarget;
+	float m_ChangeTimer{ 0.f };
+	const float m_MaxTargetChangeInterval{ 0.2f };
 
 	float m_OnSwitchAngle{};
 	float m_LastOnSwitchAngle{};
 
-	virtual FVector2D GetRandomPointInCircle();
+	virtual FVector2D GetRandomPointInCircle(const FVector2D& circleCenter);
 	
 private:
 };
