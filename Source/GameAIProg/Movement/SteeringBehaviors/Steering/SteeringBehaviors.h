@@ -13,7 +13,7 @@ public:
 	virtual ~ISteeringBehavior() = default;
 
 	// Override to implement your own behavior
-	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent) = 0;
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent);
 
 	void SetTarget(const FTargetData& NewTarget) { Target = NewTarget; }
 	
@@ -89,8 +89,8 @@ public:
 
 
 protected:
-	const float m_OffsetDistance{ 30.f };
-	const float m_WanderRadius{ 60.f };
+	const float m_OffsetDistance{ 400.f };
+	const float m_WanderRadius{ 120.f };
 
 	const float m_MaxAngleChange{ FMath::DegreesToRadians(45.f) };
 

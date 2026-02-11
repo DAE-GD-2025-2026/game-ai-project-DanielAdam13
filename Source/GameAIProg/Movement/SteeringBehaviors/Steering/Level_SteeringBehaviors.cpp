@@ -237,7 +237,7 @@ void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent)
 		Agent.Behavior = std::make_unique<Arrive>();
 		break;
 	case BehaviorTypes::Face:
-		//Agent.Behavior = std::make_unique<Face>();
+		Agent.Behavior = std::make_unique<Face>();
 		break;
 	case BehaviorTypes::Wander:
 		Agent.Behavior = std::make_unique<Wander>();
