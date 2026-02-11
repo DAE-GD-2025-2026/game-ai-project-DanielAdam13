@@ -38,7 +38,7 @@ void ASteeringAgent::Tick(float DeltaTime)
 		if (!FMath::IsNearlyZero(output.AngularVelocity))
 		{
 			FRotator newRotation = GetActorRotation();
-			newRotation.Yaw += output.AngularVelocity * DeltaTime;
+			newRotation.Yaw += static_cast<double>(output.AngularVelocity) * DeltaTime;
 			SetActorRotation(newRotation);
 		}
 	}

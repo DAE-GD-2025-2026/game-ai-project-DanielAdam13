@@ -70,7 +70,28 @@ SteeringOutput Face::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     ISteeringBehavior::CalculateSteering(deltaT, Agent);
     SteeringOutput Steering{};
 
-    Steering.AngularVelocity = FMath::FindDeltaAngleDegrees(Agent.GetRotation(), Target.Orientation);
+    FVector2D toTarget{ Target.Position - Agent.GetPosition() };
+    
+    if (toTarget.IsNearlyZero())
+        return SteeringOutput();
+
+    toTarget.Normalize();
+
+    FVector2D agentForward{ Agent.GetActorForwardVector() };
+
+    agentForward.Normalize();
+
+    float dot{ static_cast<float>(FVector2D::DotProduct(agentForward, toTarget)) };
+    dot = FMath::Clamp(dot, -1.f, 1.f);
+
+    const float angle{ FMath::Acos(dot) };
+    const float sign{ static_cast<float>(FMath::Sign(agentForward.X * toTarget.Y - agentForward.Y * toTarget.X)) };
+
+    const float signedAngle{ angle * sign }; // radians
+
+    Steering.AngularVelocity = FMath::RadiansToDegrees(signedAngle);
+
+    //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::SanitizeFloat(Steering.AngularVelocity));
 
     return Steering;
 }
