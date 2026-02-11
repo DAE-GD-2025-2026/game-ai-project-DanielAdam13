@@ -74,27 +74,22 @@ SteeringOutput Face::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     SteeringOutput Steering{};
 
     FVector2D toTarget{ Target.Position - Agent.GetPosition() };
-    
     if (toTarget.IsNearlyZero())
         return SteeringOutput();
-
     toTarget.Normalize();
 
     FVector2D agentForward{ Agent.GetActorForwardVector() };
-
     agentForward.Normalize();
 
     float dot{ static_cast<float>(FVector2D::DotProduct(agentForward, toTarget)) };
     dot = FMath::Clamp(dot, -1.f, 1.f);
 
+    // Get desired angle
     const float angle{ FMath::Acos(dot) };
     const float sign{ static_cast<float>(FMath::Sign(agentForward.X * toTarget.Y - agentForward.Y * toTarget.X)) };
-
     const float signedAngle{ angle * sign }; // radians
 
     Steering.AngularVelocity = FMath::RadiansToDegrees(signedAngle);
-
-    //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::SanitizeFloat(Steering.AngularVelocity));
 
     return Steering;
 }
@@ -103,12 +98,11 @@ SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 {
     SteeringOutput Steering{};
 
-    //static float changeTimer{ m_MaxTargetChangeInterval };
-
     const FVector2D CircleCenter{ Agent.GetActorLocation() + Agent.GetActorForwardVector() * m_OffsetDistance };
     
-    
     m_ChangeTimer += deltaT;
+
+    // Change Target
     if (m_ChangeTimer >= m_MaxTargetChangeInterval)
     {
         FTargetData newTarget{};
@@ -125,7 +119,7 @@ SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     {
         DrawDebugCircle(
             GWorld,
-            FVector(CircleCenter.X, CircleCenter.Y, 0), // center
+            FVector(CircleCenter.X, CircleCenter.Y, Agent.GetActorLocation().Z), // center
             m_WanderRadius,  
             32, 
             FColor::Blue, 
@@ -139,6 +133,7 @@ SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
         );
     }
 
+    // Always seek the target
     Steering = Seek::CalculateSteering(deltaT, Agent);
 
     return Steering;
@@ -146,10 +141,10 @@ SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 
 FVector2D Wander::GetRandomPointInCircle(const FVector2D& circleCenter)
 {
+    // Generate random angle dependent on the last chosen angle and in the range of the max angle change
     const float angle{ m_LastOnSwitchAngle + FMath::FRandRange(-m_MaxAngleChange, m_MaxAngleChange) };
 
     const FVector2D offset{ FVector2D(FMath::Cos(angle), FMath::Sin(angle)) * m_WanderRadius };
-
     const FVector2D wanderTargetPos{ circleCenter + offset };
 
     m_LastOnSwitchAngle = angle;

@@ -87,17 +87,15 @@ public:
 	// Wander Logic
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 
-
 protected:
 	const float m_OffsetDistance{ 200.f };
 	const float m_WanderRadius{ 120.f };
 
-	const float m_MaxAngleChange{ FMath::DegreesToRadians(45.f) };
+	const float m_MaxAngleChange{ FMath::DegreesToRadians(60.f) };
 
 	float m_ChangeTimer{ 0.f };
 	const float m_MaxTargetChangeInterval{ 0.2f };
 
-	float m_OnSwitchAngle{};
 	float m_LastOnSwitchAngle{};
 
 	virtual FVector2D GetRandomPointInCircle(const FVector2D& circleCenter);
