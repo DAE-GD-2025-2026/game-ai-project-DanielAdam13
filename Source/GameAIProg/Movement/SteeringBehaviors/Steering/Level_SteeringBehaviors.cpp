@@ -155,17 +155,9 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 			
 			if (bBehaviourModified)
 			{
-				// Automatically add a second agent when in Pursuit or Evade
-				if (a.SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit))
+				if (SteeringAgents.size() > 1)
 				{
-					if (SteeringAgents.size() == 1)
-					{
-						AddAgent(BehaviorTypes::Seek);
-					}
-				}
-				else if(SteeringAgents.size() > 1)
-				{
-					// If in any other behaviour -> leave only the original agent
+					// For any behaviour switch -> mark every agent except the current one for deletion
 					bRemoveAllExceptCurrent = true;
 					currentAgentIndex = i;
 				}
@@ -204,6 +196,13 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 				RemoveAgent(idx);
 			}
 		}
+	}
+
+	// Automatically add a second agent when in Pursuit
+	if (SteeringAgents[currentAgentIndex].SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit))
+	{
+		if (bRemoveAllExceptCurrent || SteeringAgents.size() == 1)
+			AddAgent(BehaviorTypes::Seek);
 	}
 	bRemoveAllExceptCurrent = false;
 
@@ -288,6 +287,8 @@ void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent)
 	UpdateTarget(Agent);
 	
 	Agent.Agent->SetSteeringBehavior(Agent.Behavior.get());
+
+	//Agent.Behavior->SetTarget()
 }
 
 void ALevel_SteeringBehaviors::RefreshTargetLabels()
