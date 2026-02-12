@@ -151,3 +151,10 @@ FVector2D Wander::GetRandomPointInCircle(const FVector2D& circleCenter)
 
     return wanderTargetPos;
 }
+
+SteeringOutput Pursuit::CalculateSteering(float deltaT, ASteeringAgent& Agent)
+{
+    SteeringOutput Steering{};
+
+    return Steering;
+}

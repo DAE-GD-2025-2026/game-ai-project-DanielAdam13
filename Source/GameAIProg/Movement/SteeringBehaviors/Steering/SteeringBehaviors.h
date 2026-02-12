@@ -25,7 +25,7 @@ protected:
 	FTargetData Target;
 };
 
-// Your own SteeringBehaviors should follow here...
+// SteeringBehaviors...
 class Seek : public ISteeringBehavior
 {
 public:
@@ -50,7 +50,7 @@ public:
 protected:
 };
 
-class Arrive : public Seek
+class Arrive final : public Seek
 {
 public:
 	Arrive() = default;
@@ -78,7 +78,18 @@ public:
 protected:
 };
 
-class Wander : public Seek
+class Pursuit final : public Seek
+{
+public:
+	Pursuit() = default;
+	virtual ~Pursuit() override = default;
+
+	// Pursuit Behaviour
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+private:
+};
+
+class Wander final : public Seek
 {
 public:
 	Wander() = default;
@@ -88,6 +99,7 @@ public:
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 
 protected:
+private:
 	const float m_OffsetDistance{ 200.f };
 	const float m_WanderRadius{ 120.f };
 
@@ -99,7 +111,5 @@ protected:
 	float m_LastOnSwitchAngle{};
 
 	virtual FVector2D GetRandomPointInCircle(const FVector2D& circleCenter);
-	
-private:
 };
 

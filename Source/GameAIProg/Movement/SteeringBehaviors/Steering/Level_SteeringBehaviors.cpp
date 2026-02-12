@@ -81,6 +81,9 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 		AddAgent(BehaviorTypes::Seek);
 	ImGui::Separator();
 
+	bool bRemoveAllExceptCurrent = false;
+	int currentAgentIndex{};
+
 	for (int i{0}; i < SteeringAgents.size(); ++i)
 	{
 		ImGui::PushID(i);
@@ -115,7 +118,7 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 			ImGui::PushItemWidth(100);
 
 			// Add the names of your steering behaviors
-			if (ImGui::Combo("", &a.SelectedBehavior, "Seek\0Wander\0Flee\0Arrive\0Face\0Evade\0Pursuit", 4))
+			if (ImGui::Combo("", &a.SelectedBehavior, "Seek\0Wander\0Flee\0Arrive\0Face\0Evade\0Pursuit", 7))
 			{
 				bBehaviourModified = true;
 			}
@@ -149,8 +152,27 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 			ImGui::Spacing();
 			
 			
+			
 			if (bBehaviourModified)
+			{
+				// Automatically add a second agent when in Pursuit or Evade
+				if (a.SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit))
+				{
+					if (SteeringAgents.size() == 1)
+					{
+						AddAgent(BehaviorTypes::Seek);
+					}
+				}
+				else if(SteeringAgents.size() > 1)
+				{
+					// If in any other behaviour -> leave only the original agent
+					bRemoveAllExceptCurrent = true;
+					currentAgentIndex = i;
+				}
+
 				SetAgentBehavior(a);
+			}
+				
 
 			if (ImGui::Button("x"))
 			{
@@ -171,6 +193,19 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 		
 		ImGui::PopID();
 	}
+	
+	// Function to remove every steering agent except the current one
+	if (bRemoveAllExceptCurrent)
+	{
+		for (int idx{ static_cast<int>(SteeringAgents.size()) - 1 }; idx > 0; --idx)
+		{
+			if (idx != currentAgentIndex)
+			{
+				RemoveAgent(idx);
+			}
+		}
+	}
+	bRemoveAllExceptCurrent = false;
 
 	if (AgentIndexToRemove >= 0)
 	{
@@ -192,6 +227,7 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 
 bool ALevel_SteeringBehaviors::AddAgent(BehaviorTypes BehaviorType, bool AutoOrient)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent of type: " + static_cast<int>(BehaviorType));
 	ImGui_Agent ImGuiAgent = {};
 	ImGuiAgent.Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, FRotator::ZeroRotator);
 	if (IsValid(ImGuiAgent.Agent))
@@ -238,6 +274,9 @@ void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent)
 		break;
 	case BehaviorTypes::Face:
 		Agent.Behavior = std::make_unique<Face>();
+		break;
+	case BehaviorTypes::Pursuit:
+		Agent.Behavior = std::make_unique<Pursuit>();
 		break;
 	case BehaviorTypes::Wander:
 		Agent.Behavior = std::make_unique<Wander>();
