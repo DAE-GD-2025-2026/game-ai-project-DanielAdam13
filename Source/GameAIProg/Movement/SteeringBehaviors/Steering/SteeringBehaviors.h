@@ -31,6 +31,9 @@ protected:
 	FVector2D currentLinearVelocity;
 
 	ASteeringAgent* m_TargetAgent{ nullptr };
+
+	virtual void PredictAndSetTarget(const float predictedTime);
+	
 };
 
 // SteeringBehaviors...
@@ -89,13 +92,27 @@ protected:
 class Pursuit final : public Seek
 {
 public:
-	Pursuit();
+	Pursuit() = default;
 	virtual ~Pursuit() override = default;
 
 	// Pursuit Behaviour
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+
 private:
-	const float m_PredictionTimer;
+	const float m_PredictionTimer{ 0.2f };
+};
+
+class Evade final : public Flee
+{
+public:
+	Evade() = default;
+	virtual ~Evade() override = default;
+
+	// Evade Behaviour
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+
+private:
+	const float m_PredictionTimer{ 0.2f };
 };
 
 class Wander final : public Seek

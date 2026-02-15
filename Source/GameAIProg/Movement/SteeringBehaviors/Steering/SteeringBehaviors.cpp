@@ -24,6 +24,14 @@ SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent
     return SteeringOutput();
 }
 
+void ISteeringBehavior::PredictAndSetTarget(const float predictedTime)
+{
+    FTargetData newTarget;
+    newTarget.Position = m_TargetAgent->GetPosition() + m_TargetAgent->GetLinearVelocity() * predictedTime;
+
+    SetTarget(newTarget);
+}
+
 SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
     ISteeringBehavior::CalculateSteering(DeltaT, Agent);
@@ -154,11 +162,6 @@ FVector2D Wander::GetRandomPointInCircle(const FVector2D& circleCenter)
     return wanderTargetPos;
 }
 
-Pursuit::Pursuit()
-    : m_PredictionTimer{ 0.2f }
-{
-}
-
 SteeringOutput Pursuit::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 {
     SteeringOutput Steering{};
@@ -167,21 +170,28 @@ SteeringOutput Pursuit::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     if (!m_TargetAgent)
         return Steering;
 
+    PredictAndSetTarget(m_PredictionTimer);
 
-    FTargetData newTarget;
-    newTarget.Position = m_TargetAgent->GetPosition() + m_TargetAgent->GetLinearVelocity() * m_PredictionTimer;
-
-
-    SetTarget(newTarget);
-
-    /*const float targetAgentSpeed{ static_cast<float>(Target.LinearVelocity.Length()) };
-
-    FTargetData newTarget{ FVector2D(m_TargetAgent->GetPosition()) + targetAgentSpeed * m_PredictionTimer };
-
-    SetTarget(newTarget);*/
-
+    // Agent has updated target
     Steering = Seek::CalculateSteering(deltaT, Agent);
 
-    // Seek to new predicted target
+    // Seek to the new predicted target
+    return Steering;
+}
+
+SteeringOutput Evade::CalculateSteering(float deltaT, ASteeringAgent& Agent)
+{
+    SteeringOutput Steering{};
+
+    // If target doesn't exist -> early out
+    if (!m_TargetAgent)
+        return Steering;
+
+    PredictAndSetTarget(m_PredictionTimer);
+
+    // Agent has updated target
+    Steering = Flee::CalculateSteering(deltaT, Agent);
+
+    // Seek to the new predicted target
     return Steering;
 }

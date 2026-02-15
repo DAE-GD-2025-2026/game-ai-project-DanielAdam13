@@ -155,6 +155,7 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 			
 			
 			// Store current index
+			//currentAgentIndex = i;
 
 			if (bBehaviourModified)
 			{
@@ -204,7 +205,8 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 	}
 
 	// Automatically add a second agent when in Pursuit
-	if (SteeringAgents[currentAgentIndex].SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit))
+	if (SteeringAgents[currentAgentIndex].SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit) ||
+		SteeringAgents[currentAgentIndex].SelectedBehavior == static_cast<int>(BehaviorTypes::Evade))
 	{
 		// Executes only once if the flag is set or the steering agent's size is 1 for some reason (start of the game)
 		if (bRemoveAllExceptCurrent || SteeringAgents.size() == 1)
@@ -289,6 +291,9 @@ void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent)
 		break;
 	case BehaviorTypes::Pursuit:
 		Agent.Behavior = std::make_unique<Pursuit>();
+		break;
+	case BehaviorTypes::Evade:
+		Agent.Behavior = std::make_unique<Evade>();
 		break;
 	case BehaviorTypes::Wander:
 		Agent.Behavior = std::make_unique<Wander>();
