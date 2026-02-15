@@ -82,7 +82,9 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 	ImGui::Separator();
 
 	bool bRemoveAllExceptCurrent = false;
-	int currentAgentIndex{};
+
+	// It's always the first one in the container
+	constexpr int currentAgentIndex{ 0 };
 
 	for (int i{0}; i < SteeringAgents.size(); ++i)
 	{
@@ -152,14 +154,15 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 			ImGui::Spacing();
 			
 			
-			
+			// Store current index
+
 			if (bBehaviourModified)
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Modified");
 				if (SteeringAgents.size() > 1)
 				{
 					// For any behaviour switch -> mark every agent except the current one for deletion
 					bRemoveAllExceptCurrent = true;
-					currentAgentIndex = i;
 				}
 
 				SetAgentBehavior(a);
@@ -189,7 +192,9 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 	// Function to remove every steering agent except the current one
 	if (bRemoveAllExceptCurrent)
 	{
-		for (int idx{ static_cast<int>(SteeringAgents.size()) - 1 }; idx > 0; --idx)
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Removing all");
+
+		for (int idx{ static_cast<int>(SteeringAgents.size()) - 1 }; idx >= 0; --idx)
 		{
 			if (idx != currentAgentIndex)
 			{
@@ -201,8 +206,13 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 	// Automatically add a second agent when in Pursuit
 	if (SteeringAgents[currentAgentIndex].SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit))
 	{
+		// Executes only once if the flag is set or the steering agent's size is 1 for some reason (start of the game)
 		if (bRemoveAllExceptCurrent || SteeringAgents.size() == 1)
+		{
 			AddAgent(BehaviorTypes::Seek);
+			SteeringAgents[currentAgentIndex].SelectedTarget = 1;
+			SteeringAgents[currentAgentIndex].Behavior->SetAgentTarget(SteeringAgents[SteeringAgents[currentAgentIndex].SelectedTarget].Agent);
+		}
 	}
 	bRemoveAllExceptCurrent = false;
 
@@ -226,7 +236,8 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 
 bool ALevel_SteeringBehaviors::AddAgent(BehaviorTypes BehaviorType, bool AutoOrient)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent of type: " + static_cast<int>(BehaviorType));
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent");
+
 	ImGui_Agent ImGuiAgent = {};
 	ImGuiAgent.Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, FRotator::ZeroRotator);
 	if (IsValid(ImGuiAgent.Agent))
@@ -248,6 +259,8 @@ bool ALevel_SteeringBehaviors::AddAgent(BehaviorTypes BehaviorType, bool AutoOri
 
 void ALevel_SteeringBehaviors::RemoveAgent(unsigned int Index)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Removed Agent");
+
 	SteeringAgents[Index].Agent->Destroy();
 	SteeringAgents.erase(SteeringAgents.begin() + Index);
 
@@ -305,13 +318,17 @@ void ALevel_SteeringBehaviors::RefreshTargetLabels()
 void ALevel_SteeringBehaviors::UpdateTarget(ImGui_Agent& Agent)
 {
 	// Note: MouseTarget position is updated via Level BP every click
-	
-	bool const bUseMouseAsTarget = Agent.SelectedTarget < 0;
 
-	if (Agent.SelectedBehavior == static_cast<int>(BehaviorTypes::Wander))
+
+	// DISABLE THE MOUSE TARGETTING for the following behaviours:
+	if (Agent.SelectedBehavior == static_cast<int>(BehaviorTypes::Pursuit) ||
+		Agent.SelectedBehavior == static_cast<int>(BehaviorTypes::Wander) ||
+		Agent.SelectedBehavior == static_cast<int>(BehaviorTypes::Evade))
 	{
 		return;
 	}
+	
+	bool const bUseMouseAsTarget = Agent.SelectedTarget < 0;
 
 	if (!bUseMouseAsTarget)
 	{

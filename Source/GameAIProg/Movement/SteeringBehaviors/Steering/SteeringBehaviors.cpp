@@ -31,6 +31,8 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 
     Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 
+    currentLinearVelocity = Steering.LinearVelocity;
+
     return Steering;
 }
 
@@ -152,9 +154,34 @@ FVector2D Wander::GetRandomPointInCircle(const FVector2D& circleCenter)
     return wanderTargetPos;
 }
 
+Pursuit::Pursuit()
+    : m_PredictionTimer{ 0.2f }
+{
+}
+
 SteeringOutput Pursuit::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 {
     SteeringOutput Steering{};
 
+    // If target doesn't exist -> early out
+    if (!m_TargetAgent)
+        return Steering;
+
+
+    FTargetData newTarget;
+    newTarget.Position = m_TargetAgent->GetPosition() + m_TargetAgent->GetLinearVelocity() * m_PredictionTimer;
+
+
+    SetTarget(newTarget);
+
+    /*const float targetAgentSpeed{ static_cast<float>(Target.LinearVelocity.Length()) };
+
+    FTargetData newTarget{ FVector2D(m_TargetAgent->GetPosition()) + targetAgentSpeed * m_PredictionTimer };
+
+    SetTarget(newTarget);*/
+
+    Steering = Seek::CalculateSteering(deltaT, Agent);
+
+    // Seek to new predicted target
     return Steering;
 }

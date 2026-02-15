@@ -21,8 +21,16 @@ public:
 	T* As()
 	{ return static_cast<T*>(this); }
 
+	void SetAgentTarget(ASteeringAgent* otherAgent) {
+		m_TargetAgent = otherAgent;
+	};
+
 protected:
 	FTargetData Target;
+
+	FVector2D currentLinearVelocity;
+
+	ASteeringAgent* m_TargetAgent{ nullptr };
 };
 
 // SteeringBehaviors...
@@ -81,12 +89,13 @@ protected:
 class Pursuit final : public Seek
 {
 public:
-	Pursuit() = default;
+	Pursuit();
 	virtual ~Pursuit() override = default;
 
 	// Pursuit Behaviour
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 private:
+	const float m_PredictionTimer;
 };
 
 class Wander final : public Seek
