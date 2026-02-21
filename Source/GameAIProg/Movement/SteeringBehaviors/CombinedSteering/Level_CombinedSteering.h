@@ -1,8 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
+#include <memory>
 #include "CombinedSteeringBehaviors.h"
 #include "GameAIProg/Shared/Level_Base.h"
 #include "GameAIProg/Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
@@ -31,6 +30,22 @@ private:
 	//Datamembers
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
-
 	
+	enum class Behaviors
+	{
+		Seek,
+		Wander
+	};
+	
+	struct CombinedAgent
+	{
+		ASteeringAgent* Agent{ nullptr };
+		std::unique_ptr<ISteeringBehavior> Behavior{ nullptr };
+	};
+	
+	std::vector<CombinedAgent> m_CombinedAgents{};
+	
+	BlendedSteering m_pBlendedSteering;
+	
+	void AddAgent(Behaviors behavior);
 };

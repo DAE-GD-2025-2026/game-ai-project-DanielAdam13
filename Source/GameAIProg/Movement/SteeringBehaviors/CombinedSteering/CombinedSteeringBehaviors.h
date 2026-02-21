@@ -19,6 +19,7 @@ public:
 		{};
 	};
 
+	BlendedSteering() = default;
 	BlendedSteering(const std::vector<WeightedBehavior>& WeightedBehaviors);
 
 	void AddBehaviour(const WeightedBehavior& WeightedBehavior) { WeightedBehaviors.push_back(WeightedBehavior); }
@@ -30,7 +31,7 @@ public:
 	std::vector<WeightedBehavior>& GetWeightedBehaviorsRef() { return WeightedBehaviors; }
 
 private:
-	std::vector<WeightedBehavior> WeightedBehaviors = {};
+	std::vector<WeightedBehavior> WeightedBehaviors{};
 
 	// using ISteeringBehavior::SetTarget; // made private because targets need to be set on the individual behaviors, not the combined behavior
 };

@@ -2,7 +2,6 @@
 
 #include "imgui.h"
 
-
 // Sets default values
 ALevel_CombinedSteering::ALevel_CombinedSteering()
 {
@@ -14,19 +13,57 @@ ALevel_CombinedSteering::ALevel_CombinedSteering()
 void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// Initialize agents vector with 10 Seekers
+	for (int i{}; i < 10; ++i)
+	{
+		AddAgent(Behaviors::Seek);
+	}
+	
+	m_pBlendedSteering = BlendedSteering();
 
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
 {
 	Super::BeginDestroy();
+}
 
+void ALevel_CombinedSteering::AddAgent(Behaviors behavior)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent");
+	
+	CombinedAgent newAgent{};
+	newAgent.Agent =  GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, 
+			FRotator::ZeroRotator);
+
+	switch (behavior)
+	{
+	case Behaviors::Seek:
+		newAgent.Behavior = std::make_unique<Seek>();
+		break;
+	case Behaviors::Wander:
+		newAgent.Behavior = std::make_unique<Wander>();
+		break;
+	}
+	
+	m_CombinedAgents.push_back(std::move(newAgent));
+	BlendedSteering::WeightedBehavior newWeighted{newAgent.Behavior.get(), 0.f};
+	
+	m_pBlendedSteering.AddBehaviour(std::move(newWeighted));
 }
 
 // Called every frame
 void ALevel_CombinedSteering::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	static bool spawn{true};
+	if (spawn)
+	{
+		//AddAgent(Behaviors::Seek);
+		spawn = false;
+	}
 	
 #pragma region UI
 	//UI
