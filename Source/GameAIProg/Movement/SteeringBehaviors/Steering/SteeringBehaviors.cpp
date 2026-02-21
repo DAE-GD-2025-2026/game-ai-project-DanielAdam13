@@ -3,17 +3,13 @@
 
 #include "DrawDebugHelpers.h"
 
-//SEEK
-//*******
-// TODO: Do the Week01 assignment :^)
-
 SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
-    if (GWorld)
+    if (Agent.GetWorld())
     {
         // Draw target point
         DrawDebugSphere(
-            GWorld,
+            Agent.GetWorld(),
             FVector(Target.Position, Agent.GetActorLocation().Z),
             10.f,
             12,
@@ -125,10 +121,10 @@ SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     }
 
     // Draw the circle
-    if (GWorld)
+    if (Agent.GetWorld())
     {
         DrawDebugCircle(
-            GWorld,
+            Agent.GetWorld(),
             FVector(CircleCenter.X, CircleCenter.Y, Agent.GetActorLocation().Z), // center
             m_WanderRadius,  
             32, 
