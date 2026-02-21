@@ -40,12 +40,16 @@ private:
 	struct CombinedAgent
 	{
 		ASteeringAgent* Agent{ nullptr };
-		std::unique_ptr<ISteeringBehavior> Behavior{ nullptr };
+		std::unique_ptr<BlendedSteering> Behavior{ nullptr };
 	};
 	
-	std::vector<CombinedAgent> m_CombinedAgents{};
+	std::vector<CombinedAgent> CombinedAgents{};
 	
-	std::unique_ptr<BlendedSteering> m_pBlendedSteering;
+	std::unique_ptr<BlendedSteering> pTemplateSteering;
 	
-	void AddAgent(Behaviors behavior);
+	//std::unique_ptr<BlendedSteering> m_pBlendedSteering;
+	
+	void AddAgent();
+	
+	void UpdateTarget(CombinedAgent& agent);
 };

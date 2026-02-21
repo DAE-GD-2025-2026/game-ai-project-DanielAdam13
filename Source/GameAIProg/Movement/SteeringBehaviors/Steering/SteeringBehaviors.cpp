@@ -36,7 +36,7 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 
     currentLinearVelocity = Steering.LinearVelocity;
-
+    
     return Steering;
 }
 

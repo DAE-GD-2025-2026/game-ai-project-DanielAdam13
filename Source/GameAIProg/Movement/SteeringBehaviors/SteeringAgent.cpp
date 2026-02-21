@@ -25,6 +25,8 @@ void ASteeringAgent::BeginDestroy()
 void ASteeringAgent::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
 
 	if (SteeringBehavior)
 	{

@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "../SteeringAgent.h"
 
+#include <random>
+
 BlendedSteering::BlendedSteering(const std::vector<WeightedBehavior>& WeightedBehaviors)
 	:WeightedBehaviors(WeightedBehaviors)
 {
@@ -18,11 +20,17 @@ SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& 
 	for (const WeightedBehavior& wb : WeightedBehaviors)
 	{
 		AverageWeight += wb.Weight;
+		wb.pBehavior->CalculateSteering(DeltaT, Agent);
 	}
-	AverageWeight /= WeightedBehaviors.size();
+	AverageWeight /= WeightedBehaviors.size(); // 2 - only seek and wander
 	
+	for (const WeightedBehavior& wb : WeightedBehaviors)
+	{
+		BlendedSteering.LinearVelocity +=
+			wb.pBehavior->CalculateSteering(DeltaT, Agent).LinearVelocity * AverageWeight;
+	}
 	
-	// TODO: Add debug drawing
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
 
 	return BlendedSteering;
 }
