@@ -45,7 +45,7 @@ private:
 	
 	std::vector<CombinedAgent> m_CombinedAgents{};
 	
-	BlendedSteering m_pBlendedSteering;
+	std::unique_ptr<BlendedSteering> m_pBlendedSteering;
 	
 	void AddAgent(Behaviors behavior);
 };

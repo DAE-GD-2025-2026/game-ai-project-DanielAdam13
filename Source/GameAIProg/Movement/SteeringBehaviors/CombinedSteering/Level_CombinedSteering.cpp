@@ -14,14 +14,13 @@ void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	m_pBlendedSteering = std::make_unique<BlendedSteering>();
+	
 	// Initialize agents vector with 10 Seekers
 	for (int i{}; i < 10; ++i)
 	{
 		AddAgent(Behaviors::Seek);
 	}
-	
-	m_pBlendedSteering = BlendedSteering();
-
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
@@ -50,7 +49,7 @@ void ALevel_CombinedSteering::AddAgent(Behaviors behavior)
 	m_CombinedAgents.push_back(std::move(newAgent));
 	BlendedSteering::WeightedBehavior newWeighted{newAgent.Behavior.get(), 0.f};
 	
-	m_pBlendedSteering.AddBehaviour(std::move(newWeighted));
+	m_pBlendedSteering->AddBehaviour(std::move(newWeighted));
 }
 
 // Called every frame
@@ -122,13 +121,13 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		ImGui::Spacing();
 
 
-		// ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",
-		// 	pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
-		// 	[this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = InVal; }, "%.2f");
-		//
-		// ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",
-		// pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
-		// [this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = InVal; }, "%.2f");
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",
+			m_pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
+			[this](float InVal) { m_pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = InVal; }, "%.2f");
+		
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",
+		m_pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
+		[this](float InVal) { m_pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = InVal; }, "%.2f");
 	
 		//End
 		ImGui::End();
