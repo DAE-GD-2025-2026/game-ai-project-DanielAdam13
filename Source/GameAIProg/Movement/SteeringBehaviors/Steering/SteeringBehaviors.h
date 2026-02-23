@@ -15,15 +15,16 @@ public:
 	// Override to implement your own behavior
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent & Agent);
 
-	void SetTarget(const FTargetData& NewTarget) { Target = NewTarget; }
+	virtual void SetTarget(const FTargetData& NewTarget) { Target = NewTarget; }
 	
 	template<class T, std::enable_if_t<std::is_base_of_v<ISteeringBehavior, T>>* = nullptr>
 	T* As()
 	{ return static_cast<T*>(this); }
 
-	void SetAgentTarget(ASteeringAgent* otherAgent) {
-		m_TargetAgent = otherAgent;
-	};
+	void SetAgentTarget(ASteeringAgent* OtherAgent) 
+	{
+		m_TargetAgent = OtherAgent;
+	}
 
 protected:
 	FTargetData Target;
@@ -132,7 +133,7 @@ private:
 	const float m_MaxAngleChange{ FMath::DegreesToRadians(60.f) };
 
 	float m_ChangeTimer{ 0.f };
-	const float m_MaxTargetChangeInterval{ 0.2f };
+	const float m_MaxTargetChangeInterval{ 0.3f };
 
 	float m_LastOnSwitchAngle{};
 

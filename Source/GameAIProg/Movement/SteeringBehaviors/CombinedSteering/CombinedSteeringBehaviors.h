@@ -3,8 +3,6 @@
 
 #include "../Steering/SteeringBehaviors.h"
 
-#include <memory>
-
 //****************
 //BLENDED STEERING
 class BlendedSteering final: public ISteeringBehavior
@@ -31,6 +29,8 @@ public:
 	
 	// returns a reference to the weighted behaviors, can be used to adjust weighting. Is not intended to alter the behaviors themselves.
 	std::vector<WeightedBehavior>& GetWeightedBehaviorsRef() { return WeightedBehaviors; }
+	
+	virtual void SetTarget(const FTargetData& NewTarget) override;
 
 private:
 	std::vector<WeightedBehavior> WeightedBehaviors{};

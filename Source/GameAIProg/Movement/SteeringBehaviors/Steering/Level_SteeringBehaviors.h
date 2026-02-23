@@ -57,9 +57,9 @@ private:
 	
 	bool AddAgent(BehaviorTypes BehaviorType = BehaviorTypes::Wander, bool AutoOrient = true);
 	void RemoveAgent(unsigned int Index);
-	void SetAgentBehavior(ImGui_Agent& Agent);
+	void SetAgentBehavior(ImGui_Agent& Agent) const;
 
 	void RefreshTargetLabels();
-	void UpdateTarget(ImGui_Agent& Agent);
+	void UpdateTarget(ImGui_Agent& Agent) const;
 	void RefreshAgentTargets(unsigned int IndexRemoved);
 };

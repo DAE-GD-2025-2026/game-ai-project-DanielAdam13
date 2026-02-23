@@ -270,7 +270,7 @@ void ALevel_SteeringBehaviors::RemoveAgent(unsigned int Index)
 	RefreshAgentTargets(Index);
 }
 
-void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent)
+void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent) const
 {
 	Agent.Behavior.reset();
 	
@@ -320,7 +320,7 @@ void ALevel_SteeringBehaviors::RefreshTargetLabels()
 	}
 }
 
-void ALevel_SteeringBehaviors::UpdateTarget(ImGui_Agent& Agent)
+void ALevel_SteeringBehaviors::UpdateTarget(ImGui_Agent& Agent) const
 {
 	// Note: MouseTarget position is updated via Level BP every click
 

@@ -5,7 +5,6 @@
 #include "CombinedSteeringBehaviors.h"
 #include "GameAIProg/Shared/Level_Base.h"
 #include "GameAIProg/Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
-#include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
 #include "Level_CombinedSteering.generated.h"
 
 UCLASS()
@@ -31,28 +30,27 @@ private:
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 	
-	enum class Behaviors
+	enum class EBehaviors
 	{
 		Seek,
 		Wander
 	};
 	
-	struct CombinedAgent
+	struct FCombinedAgent
 	{
-		ASteeringAgent* Agent{ nullptr };
-		std::unique_ptr<BlendedSteering> Behavior{ nullptr };
+		ASteeringAgent* Agent{};
+		ISteeringBehavior* Behavior{};
 	};
 	
-	std::vector<CombinedAgent> CombinedAgents{};
+	std::vector<std::unique_ptr<FCombinedAgent>> CombinedAgents{};
 	
-	std::unique_ptr<BlendedSteering> pTemplateSteering{};
+	std::unique_ptr<BlendedSteering> pTemplateSteering;
 	
 	std::unique_ptr<Seek> SeekTemplate{};
 	std::unique_ptr<Wander> WanderTemplate{};
-	
-	//std::unique_ptr<BlendedSteering> m_pBlendedSteering;
+	std::vector<BlendedSteering::WeightedBehavior> TemplateBehaviors{};
 	
 	void AddAgent();
 	
-	void UpdateTarget(CombinedAgent& agent);
+	void UpdateTarget(const FCombinedAgent* Agent) const;
 };

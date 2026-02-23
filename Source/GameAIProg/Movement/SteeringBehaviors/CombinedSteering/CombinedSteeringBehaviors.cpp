@@ -34,7 +34,7 @@ SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& 
 			wb.pBehavior->CalculateSteering(DeltaT, Agent).LinearVelocity * AverageWeight;
 	}
 	
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
 
 	return BlendedSteering;
 }
@@ -55,6 +55,15 @@ float* BlendedSteering::GetWeight(ISteeringBehavior* const SteeringBehavior)
 		return &it->Weight;
 	
 	return nullptr;
+}
+
+void BlendedSteering::SetTarget(const FTargetData& NewTarget)
+{
+	for (auto& wb : WeightedBehaviors)
+	{
+		if (wb.pBehavior)
+			wb.pBehavior->SetTarget(NewTarget);
+	}
 }
 
 //*****************
