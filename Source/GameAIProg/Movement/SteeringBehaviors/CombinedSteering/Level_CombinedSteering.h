@@ -26,31 +26,36 @@ protected:
 	virtual void BeginDestroy() override;
 
 private:
-	//Datamembers
+	// Data members
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 	
 	enum class EBehaviors
 	{
-		Seek,
-		Wander
+		Blended,
+		Priority
 	};
 	
 	struct FCombinedAgent
 	{
 		ASteeringAgent* Agent{};
-		ISteeringBehavior* Behavior{};
+		ISteeringBehavior* Behavior{}; // Because you can't Agent.pBehavior...
 	};
 	
 	std::vector<std::unique_ptr<FCombinedAgent>> CombinedAgents{};
 	
-	std::unique_ptr<BlendedSteering> pTemplateSteering;
+	// Blended Steering:
+	std::unique_ptr<BlendedSteering> pTemplateBlendedSteering;
 	
-	std::unique_ptr<Seek> SeekTemplate{};
-	std::unique_ptr<Wander> WanderTemplate{};
-	std::vector<BlendedSteering::WeightedBehavior> TemplateBehaviors{};
+	std::unique_ptr<Seek> SeekBlendedTemplate{};
+	std::unique_ptr<Wander> WanderBlendedTemplate{};
 	
-	void AddAgent();
+	void AddAgent(EBehaviors behaviorType);
+	void UpdateTargetToMouse(const FCombinedAgent* Agent) const;
 	
-	void UpdateTarget(const FCombinedAgent* Agent) const;
+	// Priority Steering:
+	std::unique_ptr<PrioritySteering> pTemplatePrioritySteering;
+	std::unique_ptr<Evade> EvadePriorityTemplate{ nullptr };
+	std::unique_ptr<Wander> WanderPriorityTemplate{ nullptr };
+	
 };

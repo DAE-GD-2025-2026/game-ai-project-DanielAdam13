@@ -44,7 +44,7 @@ public:
 	Seek() = default;
 	virtual ~Seek() override = default;
 
-	// Seek Behaviour
+	// Seek Behavior
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 
 protected:
@@ -56,7 +56,7 @@ public:
 	Flee() = default;
 	virtual ~Flee() override = default;
 
-	// Flee Behaviour
+	// Flee Behavior
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 
 protected:
@@ -68,7 +68,7 @@ public:
 	Arrive() = default;
 	virtual ~Arrive() override = default;
 
-	// Arrive Behaviour
+	// Arrive Behavior
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 protected:
 	FVector2D m_MaxLinearVelocity{};
@@ -85,7 +85,7 @@ public:
 	Face() = default;
 	virtual ~Face() override = default;
 
-	// Face Behaviour
+	// Face Behavior
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
 protected:
 };
@@ -114,6 +114,9 @@ public:
 
 private:
 	const float m_PredictionTimer{ 0.2f };
+	const float m_EvadeRadius{ 150.f };
+	
+	bool IsActorInTargetRange(ASteeringAgent& Agent, const FVector2D& CircleCenter) const;
 };
 
 class Wander final : public Seek
@@ -137,6 +140,6 @@ private:
 
 	float m_LastOnSwitchAngle{};
 
-	virtual FVector2D GetRandomPointInCircle(const FVector2D& circleCenter);
+	FVector2D GetRandomPointInCircle(const FVector2D& circleCenter);
 };
 

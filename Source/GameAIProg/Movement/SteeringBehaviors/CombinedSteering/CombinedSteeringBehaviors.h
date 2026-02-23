@@ -43,7 +43,7 @@ private:
 class PrioritySteering final: public ISteeringBehavior
 {
 public:
-	PrioritySteering(const std::vector<ISteeringBehavior*>& priorityBehaviors)
+	explicit PrioritySteering(const std::vector<ISteeringBehavior*>& priorityBehaviors)
 		:m_PriorityBehaviors(priorityBehaviors) 
 	{}
 

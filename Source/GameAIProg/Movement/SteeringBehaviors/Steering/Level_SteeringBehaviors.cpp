@@ -213,10 +213,11 @@ void ALevel_SteeringBehaviors::Tick(float DeltaTime)
 		{
 			AddAgent(BehaviorTypes::Seek);
 			SteeringAgents[currentAgentIndex].SelectedTarget = 1;
-			SteeringAgents[currentAgentIndex].Behavior->SetAgentTarget(SteeringAgents[SteeringAgents[currentAgentIndex].SelectedTarget].Agent);
+			SteeringAgents[currentAgentIndex].Behavior->
+				SetAgentTarget(SteeringAgents[SteeringAgents[currentAgentIndex].SelectedTarget].Agent);
 		}
 	}
-	bRemoveAllExceptCurrent = false;
+	//bRemoveAllExceptCurrent = false;
 
 	if (AgentIndexToRemove >= 0)
 	{
@@ -276,7 +277,6 @@ void ALevel_SteeringBehaviors::SetAgentBehavior(ImGui_Agent& Agent) const
 	
 	switch (static_cast<BehaviorTypes>(Agent.SelectedBehavior))
 	{
-	//TODO; Implement behaviors setting here
 	case BehaviorTypes::Seek:
 		Agent.Behavior = std::make_unique<Seek>();
 		break;

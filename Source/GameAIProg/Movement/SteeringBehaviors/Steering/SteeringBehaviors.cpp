@@ -187,7 +187,37 @@ SteeringOutput Evade::CalculateSteering(float deltaT, ASteeringAgent& Agent)
 
     // Agent has updated target
     Steering = Flee::CalculateSteering(deltaT, Agent);
+    
+    // Draw evade circle around target
+    if (Agent.GetWorld())
+    {
+        DrawDebugCircle(
+            Agent.GetWorld(),
+            FVector(Target.Position.X, Target.Position.Y, Agent.GetActorLocation().Z), // center
+            m_EvadeRadius,  
+            32, 
+            FColor::Purple, 
+            false, 
+            -1.f, 
+            0,   
+            2.f,  
+            FVector(1, 0, 0), 
+            FVector(0, 1, 0), 
+            true 
+        );
+    }
+    
+    // Change the IsValid flag dependent on if evade actor is inside of target range
+    // The flag is used in Priority Steering
+    Steering.IsValid = !IsActorInTargetRange(Agent, Target.Position);
 
     // Seek to the new predicted target
     return Steering;
+}
+
+bool Evade::IsActorInTargetRange(ASteeringAgent& Agent, const FVector2D& CircleCenter) const
+{
+    const FVector2D AgentLocation{ Agent.GetActorLocation()};
+    
+    return FVector2D::DistSquared(AgentLocation, CircleCenter) <= m_EvadeRadius * m_EvadeRadius;
 }

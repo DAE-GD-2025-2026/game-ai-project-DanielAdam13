@@ -19,8 +19,8 @@ void BlendedSteering::AddBehaviour(const WeightedBehavior& WeightedBehavior)
 SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
 	SteeringOutput BlendedSteering = {};
-	// TODO: Calculate the weighted average steeringbehavior
 	
+	// Calculate the weighted average steering behavior
 	float AverageWeight{};
 	for (const WeightedBehavior& wb : WeightedBehaviors)
 	{
@@ -80,6 +80,6 @@ SteeringOutput PrioritySteering::CalculateSteering(float DeltaT, ASteeringAgent&
 			break;
 	}
 
-	//If non of the behavior return a valid output, last behavior is returned
+	//If none of the behavior return a valid output, last behavior is returned
 	return Steering;
 }

@@ -14,29 +14,30 @@ void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// Initialize templated steering
-	SeekTemplate = std::make_unique<Seek>();
-	WanderTemplate = std::make_unique<Wander>();
-	TemplateBehaviors.push_back({SeekTemplate.get(), 0.f});
-	TemplateBehaviors.push_back({WanderTemplate.get(), 0.f});
-	pTemplateSteering = std::make_unique<BlendedSteering>(TemplateBehaviors);
+	// Initialize blended templated steering
+	SeekBlendedTemplate = std::make_unique<Seek>();
+	WanderBlendedTemplate = std::make_unique<Wander>();
+	pTemplateBlendedSteering = std::make_unique<BlendedSteering>(
+		std::vector<BlendedSteering::WeightedBehavior>{{SeekBlendedTemplate.get(), 0.f}, {WanderBlendedTemplate.get(), 0.f}});
+	
+	// Initialize priority templated steering
+	EvadePriorityTemplate = std::make_unique<Evade>();
+	WanderPriorityTemplate = std::make_unique<Wander>();
+	pTemplatePrioritySteering = std::make_unique<PrioritySteering>(
+		std::vector<ISteeringBehavior*>{EvadePriorityTemplate.get(), WanderPriorityTemplate.get()});
+	
 	
 	// Initialize agents vector with 10 elements
 	for (int i{}; i < 10; ++i)
 	{
-		AddAgent();
+		AddAgent(EBehaviors::Blended);
 	}
 }
 
-void ALevel_CombinedSteering::BeginDestroy()
-{
-	Super::BeginDestroy();
-}
-
-void ALevel_CombinedSteering::AddAgent()
+void ALevel_CombinedSteering::AddAgent(EBehaviors behaviorType)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent");
-
+	
 	// Spawn at random positions
 	const float TrimWorldSize{ TrimWorld->GetTrimWorldSize()};
 	const double PosRandX{static_cast<double>(FMath::FRandRange(-TrimWorldSize, TrimWorldSize))};
@@ -44,15 +45,32 @@ void ALevel_CombinedSteering::AddAgent()
 	
 	ASteeringAgent* NewAgent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
 		FVector{PosRandX, PosRandY, 90},FRotator::ZeroRotator);
+
+	ISteeringBehavior* NewBeh;
+	switch (behaviorType)
+	{
+	case EBehaviors::Blended:
+		NewBeh = pTemplateBlendedSteering.get();
+		break;
+	case EBehaviors::Priority:
+		NewBeh = pTemplatePrioritySteering.get();
+		break;
+	default:
+		throw std::exception("No such Behavior!");
+	}
 	
-	ISteeringBehavior* NewBeh{pTemplateSteering.get()};
 	NewAgent->SetSteeringBehavior(NewBeh);
 	
 	auto NewCombined = std::make_unique<FCombinedAgent>(NewAgent, NewBeh);
 	CombinedAgents.push_back(std::move(NewCombined));
-	
-	
 }
+
+void ALevel_CombinedSteering::BeginDestroy()
+{
+	Super::BeginDestroy();
+}
+
+
 
 // Called every frame
 void ALevel_CombinedSteering::Tick(const float DeltaTime)
@@ -80,7 +98,7 @@ void ALevel_CombinedSteering::Tick(const float DeltaTime)
 		ImGui::Indent();
 		ImGui::Text("LMB: place target");
 		ImGui::Text("RMB: move cam.");
-		ImGui::Text("Scrollwheel: zoom cam.");
+		ImGui::Text("Scroll wheel: zoom cam.");
 		ImGui::Unindent();
 	
 		ImGui::Spacing();
@@ -124,17 +142,17 @@ void ALevel_CombinedSteering::Tick(const float DeltaTime)
 
 
 		ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",
-			pTemplateSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
+			pTemplateBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f,
 			[this](float InVal)
 			{
-				pTemplateSteering->GetWeightedBehaviorsRef()[0].Weight = InVal;
+				pTemplateBlendedSteering->GetWeightedBehaviorsRef()[0].Weight = InVal;
 			}, "%.2f");
 		
 		ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",
-		pTemplateSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
+		pTemplateBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
 		[this](float InVal)
 		{
-			pTemplateSteering->GetWeightedBehaviorsRef()[1].Weight = InVal;
+			pTemplateBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = InVal;
 		}, "%.2f");
 	
 		//End
@@ -142,25 +160,23 @@ void ALevel_CombinedSteering::Tick(const float DeltaTime)
 	}
 #pragma endregion
 	
-	// Combined Steering Update
- // TODO: implement handling mouse click input for seek
-	
+	// --- Combined Steering Update ---
+	// Implement handling mouse click input for seek
 	for (auto& a : CombinedAgents)
 	{
-		UpdateTarget(a.get());
+		UpdateTargetToMouse(a.get());
 	}
 	
  // TODO: implement Make sure to also evade the wanderer
 }
 
-
-void ALevel_CombinedSteering::UpdateTarget(const FCombinedAgent* Agent) const
+void ALevel_CombinedSteering::UpdateTargetToMouse(const FCombinedAgent* Agent) const
 {
-	static FVector2d previousMouseTargetPos{MouseTarget.Position};
+	static FVector2d PreviousMouseTargetPos{MouseTarget.Position};
 	
-	if (MouseTarget.Position != previousMouseTargetPos)
+	if (MouseTarget.Position != PreviousMouseTargetPos)
 		Agent->Behavior->SetTarget(MouseTarget);
 	
-	previousMouseTargetPos = MouseTarget.Position;
+	PreviousMouseTargetPos = MouseTarget.Position;
 	
 }
