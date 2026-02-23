@@ -22,7 +22,7 @@ void ALevel_CombinedSteering::BeginPlay()
 	pTemplateSteering = std::make_unique<BlendedSteering>(TemplateBehaviors);
 	
 	// Initialize agents vector with 10 elements
-	for (int i{}; i < 3; ++i)
+	for (int i{}; i < 10; ++i)
 	{
 		AddAgent();
 	}
@@ -37,14 +37,21 @@ void ALevel_CombinedSteering::AddAgent()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent");
 
+	// Spawn at random positions
+	const float TrimWorldSize{ TrimWorld->GetTrimWorldSize()};
+	const double PosRandX{static_cast<double>(FMath::FRandRange(-TrimWorldSize, TrimWorldSize))};
+	const double PosRandY{static_cast<double>(FMath::FRandRange(-TrimWorldSize, TrimWorldSize))};
+	
 	ASteeringAgent* NewAgent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
-		FVector{0, 0, 90},FRotator::ZeroRotator);
+		FVector{PosRandX, PosRandY, 90},FRotator::ZeroRotator);
 	
 	ISteeringBehavior* NewBeh{pTemplateSteering.get()};
 	NewAgent->SetSteeringBehavior(NewBeh);
 	
 	auto NewCombined = std::make_unique<FCombinedAgent>(NewAgent, NewBeh);
 	CombinedAgents.push_back(std::move(NewCombined));
+	
+	
 }
 
 // Called every frame
