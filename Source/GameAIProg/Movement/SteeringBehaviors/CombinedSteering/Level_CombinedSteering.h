@@ -45,7 +45,10 @@ private:
 	
 	std::vector<CombinedAgent> CombinedAgents{};
 	
-	std::unique_ptr<BlendedSteering> pTemplateSteering;
+	std::unique_ptr<BlendedSteering> pTemplateSteering{};
+	
+	std::unique_ptr<Seek> SeekTemplate{};
+	std::unique_ptr<Wander> WanderTemplate{};
 	
 	//std::unique_ptr<BlendedSteering> m_pBlendedSteering;
 	

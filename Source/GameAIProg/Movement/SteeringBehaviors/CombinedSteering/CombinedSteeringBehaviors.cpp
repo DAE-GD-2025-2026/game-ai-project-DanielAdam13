@@ -7,6 +7,11 @@
 BlendedSteering::BlendedSteering(const std::vector<WeightedBehavior>& WeightedBehaviors)
 	:WeightedBehaviors(WeightedBehaviors)
 {
+}
+
+void BlendedSteering::AddBehaviour(const WeightedBehavior& WeightedBehavior)
+{
+	WeightedBehaviors.push_back(WeightedBehavior);
 };
 
 //****************
@@ -20,7 +25,6 @@ SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& 
 	for (const WeightedBehavior& wb : WeightedBehaviors)
 	{
 		AverageWeight += wb.Weight;
-		wb.pBehavior->CalculateSteering(DeltaT, Agent);
 	}
 	AverageWeight /= WeightedBehaviors.size(); // 2 - only seek and wander
 	

@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SteeringAgent.h"
+#include "AIController.h"
 
 
 // Sets default values
@@ -26,22 +27,35 @@ void ASteeringAgent::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
+	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
 
 	if (SteeringBehavior)
 	{
-		SteeringOutput output = SteeringBehavior->CalculateSteering(DeltaTime, *this);
-
-		if (!FVector{ output.LinearVelocity, 0.f }.IsNearlyZero())
+		SteeringOutput Output { SteeringBehavior->CalculateSteering(DeltaTime, *this)};
+		
+		if (Output.IsValid)
 		{
-			AddMovementInput(FVector{ output.LinearVelocity, 0.f });
-		}
-
-		if (!FMath::IsNearlyZero(output.AngularVelocity))
-		{
-			FRotator newRotation = GetActorRotation();
-			newRotation.Yaw += static_cast<double>(output.AngularVelocity) * DeltaTime;
-			SetActorRotation(newRotation);
+			AddMovementInput(FVector{ Output.LinearVelocity, 0.f });
+			
+			if (!IsAutoOrienting())
+			{
+				if (AAIController* AaiController = Cast<AAIController>(GetController()))
+				{
+					const float DeltaYaw{FMath::Clamp(Output.AngularVelocity, -1.f, 1.f) * 
+						GetMaxAngularSpeed() * DeltaTime};
+					
+					const FRotator CurrentRotation{GetActorForwardVector().ToOrientationRotator()};
+					const FRotator DeltaRotation{0, DeltaYaw, 0};
+					const FRotator DesiredRotation{CurrentRotation + DeltaRotation};
+					
+					if (FMath::IsNearlyEqual(CurrentRotation.Yaw, DesiredRotation.Yaw))
+						return;
+					
+					AaiController->SetControlRotation(DesiredRotation);
+					FaceRotation(DesiredRotation);
+					
+				}
+			}
 		}
 	}
 }

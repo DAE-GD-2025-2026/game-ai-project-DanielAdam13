@@ -16,11 +16,11 @@ void ALevel_CombinedSteering::BeginPlay()
 	
 	// Initialize templated steering
 	pTemplateSteering = std::make_unique<BlendedSteering>();
-	const auto seekBeh = std::make_unique<Seek>();
-	const auto wanderBeh = std::make_unique<Wander>();
+	const auto seekBeh = new Seek();
+	const auto wanderBeh = new Wander();
 	
-	const BlendedSteering::WeightedBehavior templateSeek{std::move(seekBeh.get()), 0.f};
-	const BlendedSteering::WeightedBehavior templateWan{std::move(wanderBeh.get()), 1.f};
+	const BlendedSteering::WeightedBehavior templateSeek{seekBeh, 0.f};
+	const BlendedSteering::WeightedBehavior templateWan{wanderBeh, 0.5f};
 	pTemplateSteering->AddBehaviour(std::move(templateSeek));
 	pTemplateSteering->AddBehaviour(std::move(templateWan));
 	
@@ -43,15 +43,16 @@ void ALevel_CombinedSteering::AddAgent()
 {
 	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Added Agent");
 	
-	CombinedAgent newAgent{};
-	newAgent.Agent =  GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, 
+	CombinedAgent NewAgent{};
+	NewAgent.Agent =  GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector{0,0,90}, 
 			FRotator::ZeroRotator);
 	
-	newAgent.Behavior = std::make_unique<BlendedSteering>();
-	newAgent.Behavior->AddBehaviour(pTemplateSteering->GetWeightedBehaviorsRef()[0]);
-	newAgent.Behavior->AddBehaviour(pTemplateSteering->GetWeightedBehaviorsRef()[1]);
+	NewAgent.Behavior = std::make_unique<BlendedSteering>();
+	NewAgent.Behavior->AddBehaviour(pTemplateSteering->GetWeightedBehaviorsRef()[0]);
+	NewAgent.Behavior->AddBehaviour(pTemplateSteering->GetWeightedBehaviorsRef()[1]);
 	
-	CombinedAgents.push_back(std::move(newAgent));
+	NewAgent.Agent->SetSteeringBehavior(NewAgent.Behavior.get());
+	CombinedAgents.push_back(std::move(NewAgent));
 }
 
 // Called every frame
