@@ -174,7 +174,8 @@ FVector2D Flock::GetAverageNeighborPos() const
 	// Sum all Fvector2d of neighbors
 	for (int i{}; i< NrOfNeighbors; ++i)
 	{
-		 AvgPosition += static_cast<FVector2D>(Neighbors[i]->GetActorLocation());
+		const FVector NeighborPos{Neighbors[i]->GetActorLocation()};
+		AvgPosition += FVector2D(NeighborPos.X, NeighborPos.Y);
 	}
 	// Get average
 	AvgPosition /= NrOfNeighbors;
