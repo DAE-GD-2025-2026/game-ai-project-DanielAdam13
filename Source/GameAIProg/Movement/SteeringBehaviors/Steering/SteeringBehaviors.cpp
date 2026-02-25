@@ -7,14 +7,14 @@ SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent
 {
     if (Agent.GetWorld())
     {
-        // Draw target point
-        DrawDebugSphere(
-            Agent.GetWorld(),
-            FVector(Target.Position, Agent.GetActorLocation().Z),
-            10.f,
-            12,
-            FColor::Red
-        );
+        // --- Draw target point ---
+        // DrawDebugSphere(
+        //     Agent.GetWorld(),
+        //     FVector(Target.Position, Agent.GetActorLocation().Z),
+        //     10.f,
+        //     12,
+        //     FColor::Red
+        // );
     }
 
     return SteeringOutput();
@@ -120,24 +120,24 @@ SteeringOutput Wander::CalculateSteering(float deltaT, ASteeringAgent& Agent)
         m_ChangeTimer -= m_MaxTargetChangeInterval;
     }
 
-    // Draw the circle
-    if (Agent.GetWorld())
-    {
-        DrawDebugCircle(
-            Agent.GetWorld(),
-            FVector(CircleCenter.X, CircleCenter.Y, Agent.GetActorLocation().Z), // center
-            m_WanderRadius,  
-            32, 
-            FColor::Blue, 
-            false, 
-            -1.f, 
-            0,   
-            2.f,  
-            FVector(1, 0, 0), 
-            FVector(0, 1, 0), 
-            true 
-        );
-    }
+    // ----- Draw the wander circle -----
+    // if (Agent.GetWorld())
+    // {
+    //     DrawDebugCircle(
+    //         Agent.GetWorld(),
+    //         FVector(CircleCenter.X, CircleCenter.Y, Agent.GetActorLocation().Z), // center
+    //         m_WanderRadius,  
+    //         32, 
+    //         FColor::Blue, 
+    //         false, 
+    //         -1.f, 
+    //         0,   
+    //         2.f,  
+    //         FVector(1, 0, 0), 
+    //         FVector(0, 1, 0), 
+    //         true 
+    //     );
+    // }
 
     // Always seek the target
     Steering = Seek::CalculateSteering(deltaT, Agent);

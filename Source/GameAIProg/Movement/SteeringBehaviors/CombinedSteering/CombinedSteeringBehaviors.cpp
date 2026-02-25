@@ -21,17 +21,17 @@ SteeringOutput BlendedSteering::CalculateSteering(float DeltaT, ASteeringAgent& 
 	SteeringOutput BlendedSteering = {};
 	
 	// Calculate the weighted average steering behavior
-	float AverageWeight{};
-	for (const WeightedBehavior& wb : WeightedBehaviors)
-	{
-		AverageWeight += wb.Weight;
-	}
-	AverageWeight /= WeightedBehaviors.size(); // 2 - only seek and wander
+	// float AverageWeight{};
+	// for (const WeightedBehavior& wb : WeightedBehaviors)
+	// {
+	// 	AverageWeight += wb.Weight;
+	// }
+	// AverageWeight /= WeightedBehaviors.size(); // 2 - only seek and wander
 	
 	for (const WeightedBehavior& wb : WeightedBehaviors)
 	{
 		BlendedSteering.LinearVelocity +=
-			wb.pBehavior->CalculateSteering(DeltaT, Agent).LinearVelocity * AverageWeight;
+			wb.pBehavior->CalculateSteering(DeltaT, Agent).LinearVelocity * wb.Weight;
 	}
 	
 	//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Calc");
