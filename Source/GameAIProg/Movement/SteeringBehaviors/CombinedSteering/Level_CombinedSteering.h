@@ -33,7 +33,8 @@ private:
 	enum class EBehaviors
 	{
 		Blended,
-		Priority
+		Priority,
+		Wanderer
 	};
 	
 	struct FCombinedAgent
@@ -57,5 +58,7 @@ private:
 	std::unique_ptr<PrioritySteering> pTemplatePrioritySteering;
 	std::unique_ptr<Evade> EvadePriorityTemplate{ nullptr };
 	std::unique_ptr<Wander> WanderPriorityTemplate{ nullptr };
+	
+	std::unique_ptr<FCombinedAgent> WandererAgent{ nullptr };
 	
 };

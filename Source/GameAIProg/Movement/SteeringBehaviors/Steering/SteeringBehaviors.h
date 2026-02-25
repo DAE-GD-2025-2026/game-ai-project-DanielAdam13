@@ -21,7 +21,7 @@ public:
 	T* As()
 	{ return static_cast<T*>(this); }
 
-	void SetAgentTarget(ASteeringAgent* OtherAgent) 
+	virtual void SetAgentTarget(ASteeringAgent* OtherAgent) 
 	{
 		m_TargetAgent = OtherAgent;
 	}
@@ -114,7 +114,7 @@ public:
 
 private:
 	const float m_PredictionTimer{ 0.2f };
-	const float m_EvadeRadius{ 150.f };
+	const float m_EvadeRadius{ 400.f };
 	
 	bool IsActorInTargetRange(ASteeringAgent& Agent, const FVector2D& CircleCenter) const;
 };

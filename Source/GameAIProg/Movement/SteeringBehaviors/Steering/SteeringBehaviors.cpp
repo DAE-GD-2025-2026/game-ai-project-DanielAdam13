@@ -8,13 +8,13 @@ SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent
     if (Agent.GetWorld())
     {
         // --- Draw target point ---
-        // DrawDebugSphere(
-        //     Agent.GetWorld(),
-        //     FVector(Target.Position, Agent.GetActorLocation().Z),
-        //     10.f,
-        //     12,
-        //     FColor::Red
-        // );
+        DrawDebugSphere(
+            Agent.GetWorld(),
+            FVector(Target.Position, Agent.GetActorLocation().Z),
+            10.f,
+            12,
+            FColor::Red
+        );
     }
 
     return SteeringOutput();
@@ -209,7 +209,7 @@ SteeringOutput Evade::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     
     // Change the IsValid flag dependent on if evade actor is inside of target range
     // The flag is used in Priority Steering
-    Steering.IsValid = !IsActorInTargetRange(Agent, Target.Position);
+    Steering.IsValid = IsActorInTargetRange(Agent, Target.Position);
 
     // Seek to the new predicted target
     return Steering;

@@ -30,7 +30,13 @@ void ALevel_CombinedSteering::BeginPlay()
 	// Initialize agents vector with 10 elements
 	for (int i{}; i < 10; ++i)
 	{
-		AddAgent(EBehaviors::Blended);
+		//AddAgent(EBehaviors::Blended);
+	}
+	
+	AddAgent( EBehaviors::Wanderer );
+	for (int i{}; i < 1; ++i)
+	{
+		AddAgent(EBehaviors::Priority);
 	}
 }
 
@@ -54,15 +60,29 @@ void ALevel_CombinedSteering::AddAgent(EBehaviors behaviorType)
 		break;
 	case EBehaviors::Priority:
 		NewBeh = pTemplatePrioritySteering.get();
+		if (WandererAgent)
+		{
+			NewBeh->SetAgentTarget( WandererAgent->Agent );
+		}
+		break;
+	case EBehaviors::Wanderer:
+		NewBeh = new Wander();
 		break;
 	default:
 		throw std::exception("No such Behavior!");
 	}
 	
-	NewAgent->SetSteeringBehavior(NewBeh);
-	
-	auto NewCombined = std::make_unique<FCombinedAgent>(NewAgent, NewBeh);
-	CombinedAgents.push_back(std::move(NewCombined));
+	if (behaviorType != EBehaviors::Wanderer)
+	{
+		NewAgent->SetSteeringBehavior(NewBeh);
+		auto NewCombined = std::make_unique<FCombinedAgent>(NewAgent, NewBeh);
+		CombinedAgents.push_back(std::move(NewCombined));
+	}
+	else
+	{
+		NewAgent->SetSteeringBehavior(NewBeh);
+		WandererAgent =  std::make_unique<FCombinedAgent>(NewAgent, NewBeh);
+	}
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
@@ -172,7 +192,7 @@ void ALevel_CombinedSteering::Tick(const float DeltaTime)
 
 void ALevel_CombinedSteering::UpdateTargetToMouse(const FCombinedAgent* Agent) const
 {
-	static FVector2d PreviousMouseTargetPos{MouseTarget.Position};
+	static FVector2d PreviousMouseTargetPos{ MouseTarget.Position };
 	
 	if (MouseTarget.Position != PreviousMouseTargetPos)
 		Agent->Behavior->SetTarget(MouseTarget);
