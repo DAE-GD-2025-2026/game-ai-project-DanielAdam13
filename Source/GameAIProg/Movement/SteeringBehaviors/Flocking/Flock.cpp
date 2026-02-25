@@ -17,18 +17,7 @@ Flock::Flock(
 {
 	Agents.SetNum(FlockSize);
 	
-    // 1. Initialize and spawn flock container's agents
-	for (int i{}; i < FlockSize; ++i)
-	{
-		const double PosRandX{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
-		const double PosRandY{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
-		
-		// Z coordinate might be wrong
-		Agents[i] = pWorld->SpawnActor<ASteeringAgent>(AgentClass, 
-			FVector{PosRandX, PosRandY, 90},FRotator::ZeroRotator);
-	}
-	
-	// 2. Create the new behaviors...
+	// 1. Create the new behaviors...
 	pSeparationBehavior = std::make_unique<Separation>(this);
 	pCohesionBehavior = std::make_unique<Cohesion>(this);
 	pVelMatchBehavior = std::make_unique<VelocityMatch>(this);
@@ -48,10 +37,26 @@ Flock::Flock(
 	pPrioritySteering = std::make_unique<PrioritySteering>(std::vector<ISteeringBehavior*>{pEvadeBehavior.get(),
 		pBlendedSteering.get()});
 	
-	for (ASteeringAgent* ag : Agents)
+	// 2. Initialize and spawn flock container's agents
+	for (int i{}; i < FlockSize; ++i)
 	{
-		ag->SetSteeringBehavior( pPrioritySteering.get() );
+		const double PosRandX{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
+		const double PosRandY{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
+		
+		// Z coordinate might be wrong
+		ASteeringAgent* Agent =
+			pWorld->SpawnActor<ASteeringAgent>(AgentClass, 
+				FVector{PosRandX, PosRandY, 90}, FRotator::ZeroRotator);
+
+		Agent->SetSteeringBehavior(pPrioritySteering.get());
+
+		Agents[i] = Agent;
 	}
+	
+	// for (ASteeringAgent* ag : Agents)
+	// {
+	// 	ag->SetSteeringBehavior( pPrioritySteering.get() );
+	// }
 	
 	// 3. Initialize memory pool for neighbors
 	Neighbors.SetNum( FlockSize );
@@ -69,6 +74,8 @@ void Flock::Tick(float DeltaTime)
 	// For every agent:
 	for (ASteeringAgent* ag : Agents)
 	{
+		if (!ag)
+			continue;
 		// Register the neighbors for this agent (-> fill the memory pool with the neighbors for the currently evaluated agent)
 		RegisterNeighbors( ag );
 		
@@ -147,6 +154,8 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 	
 	for (ASteeringAgent* ag : Agents)
 	{
+		if (!ag)
+			continue;
 		// If same agent -> skip
 		if (ag == pAgent)
 			continue;
@@ -193,6 +202,9 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 	// Sum all velocity of neighbors
 	for (int i{}; i< NrOfNeighbors; ++i)
 	{
+		if (!Neighbors[i])
+			continue;
+		
 		AvgVelocity += Neighbors[i]->GetLinearVelocity();
 	}
 	// Get average

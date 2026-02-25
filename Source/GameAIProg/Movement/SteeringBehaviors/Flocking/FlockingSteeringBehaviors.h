@@ -10,7 +10,7 @@ public:
 	Cohesion(Flock* const pFlock) :pFlock(pFlock) {};
 
 	//Cohesion Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
 private:
 	Flock* pFlock = nullptr;
@@ -24,7 +24,7 @@ public:
 	Separation(Flock* const pFlock) :pFlock(pFlock) {};
 
 	//Separation Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
 private:
 	Flock* pFlock = nullptr;
@@ -38,7 +38,7 @@ public:
 	VelocityMatch(Flock* const pFlock) :pFlock(pFlock) {};
 
 	//VelocityMatch Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
 private:
 	Flock* pFlock = nullptr;

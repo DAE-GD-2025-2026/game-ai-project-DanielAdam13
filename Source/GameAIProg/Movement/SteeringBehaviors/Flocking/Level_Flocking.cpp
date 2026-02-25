@@ -18,6 +18,11 @@ void ALevel_Flocking::BeginPlay()
 
 	TrimWorld->SetTrimWorldSize(3000.f);
 	TrimWorld->bShouldTrimWorld = true;
+	
+	pAgentToEvade = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
+		FVector{0, 0, 90},FRotator::ZeroRotator);
+	auto* SeekBehavior = new Seek();
+	pAgentToEvade->SetSteeringBehavior(SeekBehavior);
 
 	pFlock = TUniquePtr<Flock>(
 		new Flock(
@@ -26,8 +31,7 @@ void ALevel_Flocking::BeginPlay()
 			FlockSize,
 			TrimWorld->GetTrimWorldSize(),
 			pAgentToEvade,
-			true)
-			);
+			true));
 }
 
 // Called every frame
