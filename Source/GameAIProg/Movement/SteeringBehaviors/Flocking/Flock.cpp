@@ -15,7 +15,7 @@ Flock::Flock(
 	, NeighRadSqr{ NeighborhoodRadius * NeighborhoodRadius }
 	, pAgentToEvade{pAgentToEvade}
 {
-	Agents.SetNum(FlockSize);
+	Agents.Reserve(FlockSize);
 	
 	// 1. Create the new behaviors...
 	pSeparationBehavior = std::make_unique<Separation>(this);
@@ -23,7 +23,6 @@ Flock::Flock(
 	pVelMatchBehavior = std::make_unique<VelocityMatch>(this);
 	pSeekBehavior = std::make_unique<Seek>(  );
 	pWanderBehavior = std::make_unique<Wander>();
-	
 	// SET TARGET OF EVADE
 	pEvadeBehavior = std::make_unique<Evade>();
 	pEvadeBehavior->SetAgentTarget( pAgentToEvade );
@@ -31,9 +30,9 @@ Flock::Flock(
 	// Then initialize:
 	// TODO: Change weights later...
 	pBlendedSteering = std::make_unique<BlendedSteering>(std::vector<BlendedSteering::WeightedBehavior>{
-	{pCohesionBehavior.get(), 0.f}, {pSeparationBehavior.get(), 0.f}, 
-		{pVelMatchBehavior.get(), 0.f}, {pSeekBehavior.get(), 0.f},
-	{pWanderBehavior.get(), 0.f}});
+	{pCohesionBehavior.get(), 0.f}, {pSeparationBehavior.get(), 0.9f}, 
+		{pVelMatchBehavior.get(), 0.5f}, {pSeekBehavior.get(), 0.1f},
+	{pWanderBehavior.get(), 0.7f}});
 	pPrioritySteering = std::make_unique<PrioritySteering>(std::vector<ISteeringBehavior*>{pEvadeBehavior.get(),
 		pBlendedSteering.get()});
 	
@@ -43,14 +42,23 @@ Flock::Flock(
 		const double PosRandX{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
 		const double PosRandY{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
 		
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		
 		// Z coordinate might be wrong
 		ASteeringAgent* Agent =
 			pWorld->SpawnActor<ASteeringAgent>(AgentClass, 
-				FVector{PosRandX, PosRandY, 90}, FRotator::ZeroRotator);
+				FVector{PosRandX, PosRandY, 90}, FRotator::ZeroRotator, Params);
+		
+		if (!Agent)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn flock agent"));
+			continue;
+		}
 
 		Agent->SetSteeringBehavior(pPrioritySteering.get());
 
-		Agents[i] = Agent;
+		Agents.Add( Agent );
 	}
 	
 	// for (ASteeringAgent* ag : Agents)
@@ -216,5 +224,7 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 void Flock::SetTarget_Seek(FSteeringParams const& Target)
 {
  // TODO: Implement
+	
+	
 }
 

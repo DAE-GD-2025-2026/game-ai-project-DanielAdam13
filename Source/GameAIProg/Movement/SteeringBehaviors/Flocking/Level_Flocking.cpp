@@ -21,28 +21,27 @@ void ALevel_Flocking::BeginPlay()
 	
 	pAgentToEvade = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
 		FVector{0, 0, 90},FRotator::ZeroRotator);
-	auto* SeekBehavior = new Seek();
-	pAgentToEvade->SetSteeringBehavior(SeekBehavior);
+	AgentToEvadeSteering = std::make_unique<Seek>(  );
+	AgentToEvadeSteering->SetTarget( MouseTarget );
+	pAgentToEvade->SetSteeringBehavior(AgentToEvadeSteering.get());
 
-	pFlock = TUniquePtr<Flock>(
-		new Flock(
-			GetWorld(),
-			SteeringAgentClass,
-			FlockSize,
-			TrimWorld->GetTrimWorldSize(),
-			pAgentToEvade,
-			true));
+	pFlock = std::make_unique<Flock>(GetWorld(), SteeringAgentClass, FlockSize,
+			TrimWorld->GetTrimWorldSize(), pAgentToEvade,true);
 }
 
 // Called every frame
 void ALevel_Flocking::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	AgentToEvadeSteering->SetTarget( MouseTarget );
 
 	pFlock->ImGuiRender(WindowPos, WindowSize);
 	pFlock->Tick(DeltaTime);
 	pFlock->RenderDebug();
 	if (bUseMouseTarget)
 		pFlock->SetTarget_Seek(MouseTarget);
+	
+	
 }
 
