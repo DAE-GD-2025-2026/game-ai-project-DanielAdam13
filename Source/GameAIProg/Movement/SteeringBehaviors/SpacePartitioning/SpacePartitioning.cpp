@@ -48,8 +48,8 @@ CellSpace::CellSpace(UWorld* pWorld, float Width, float Height, int Rows, int Co
 	{
 		for (int c{0}; c < Cols; ++c)
 		{
-			const float Left{CellOrigin.X + c * CellWidth};
-			const float Bottom{CellOrigin.Y + r * CellHeight};
+			const float Left{static_cast<float>(CellOrigin.X + c * CellWidth)};
+			const float Bottom{static_cast<float>(CellOrigin.Y + r * CellHeight)};
 			
 			Cells.emplace_back( Left, Bottom, CellWidth, CellHeight );
 		}
@@ -86,6 +86,36 @@ void CellSpace::RegisterNeighbors(ASteeringAgent& Agent, float QueryRadius)
 {
 	// TODO Register the neighbors for the provided agent
 	// TODO Only check the cells that are within the radius of the neighborhood
+	const FVector2D AgentPosition{Agent.GetActorLocation().X, Agent.GetActorLocation().Y}; 
+	
+	FRect QueryRect{};
+	QueryRect.Min = AgentPosition - FVector2D(QueryRadius, QueryRadius);
+	QueryRect.Max = AgentPosition + FVector2D(QueryRadius, QueryRadius);
+	
+	NrOfNeighbors = 0;
+	for (Cell& cell : Cells)
+	{
+		// Find overlapping rects
+		if (DoRectsOverlap( cell.BoundingBox, QueryRect ))
+			continue;
+		
+		// !!!!!! Loop only over agents in overlapped cell !!!!!!
+		for (ASteeringAgent* OtherAgent : cell.Agents)
+		{
+			if (OtherAgent == &Agent)
+				continue;;
+			
+			const float DistanceSqr{static_cast<float>(FVector::DistSquared( 
+				Agent.GetActorLocation(), 
+				OtherAgent->GetActorLocation())) };
+			
+			if (DistanceSqr < QueryRadius * QueryRadius)
+			{
+				++NrOfNeighbors;
+				Neighbors[NrOfNeighbors] = OtherAgent;
+			}
+		}
+	}
 }
 
 void CellSpace::EmptyCells()

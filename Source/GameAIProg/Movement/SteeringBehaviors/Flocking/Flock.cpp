@@ -218,6 +218,15 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 #endif
 }
 
+const TArray<ASteeringAgent*>& Flock::GetNeighbors() const
+{
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
+	return Neighbors;
+#else
+	return pPartitionedSpace->GetNeighbors();
+#endif
+}
+
 void Flock::RenderNeighborhood()
 {
 	if (DebugRenderNeighborhood)
@@ -304,8 +313,18 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 }
 #endif
 
+int Flock::GetNrOfNeighbors() const
+{
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+	return pPartitionedSpace->GetNrOfNeighbors();
+#else
+	return NrOfNeighbors;
+#endif
+}
+
 FVector2D Flock::GetAverageNeighborPos() const
 {
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 	FVector2D AvgPosition{ FVector2D::ZeroVector };
 	
 	if (NrOfNeighbors == 0)
@@ -321,10 +340,15 @@ FVector2D Flock::GetAverageNeighborPos() const
 	AvgPosition /= NrOfNeighbors;
 	
 	return AvgPosition;
+#else
+	return {};
+#endif
+	
 }
 
 FVector2D Flock::GetAverageNeighborVelocity() const
 {
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 	FVector2D AvgVelocity { FVector2D::ZeroVector};
 
 	if (NrOfNeighbors == 0)
@@ -342,6 +366,10 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 	AvgVelocity /= NrOfNeighbors;
 	
 	return AvgVelocity;
+#else
+	return {};
+#endif
+	
 }
 
 void Flock::SetTarget_Seek(FSteeringParams const& Target) const

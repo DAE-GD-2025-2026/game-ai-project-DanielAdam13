@@ -32,8 +32,8 @@ public:
 	void ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize);
 
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
-	const TArray<ASteeringAgent*>& GetNeighbors() const { return pPartitionedSpace->GetNeighbors(); }
-	int GetNrOfNeighbors() const { return pPartitionedSpace->GetNrOfNeighbors(); }
+	const TArray<ASteeringAgent*>& GetNeighbors() const;
+	int GetNrOfNeighbors() const;
 #else // No space partitioning
 	void RegisterNeighbors(ASteeringAgent* const Agent);
 	int GetNrOfNeighbors() const { return NrOfNeighbors; }
