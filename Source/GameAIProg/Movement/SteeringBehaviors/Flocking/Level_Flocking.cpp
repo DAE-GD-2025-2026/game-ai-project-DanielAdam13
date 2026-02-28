@@ -33,15 +33,14 @@ void ALevel_Flocking::BeginPlay()
 void ALevel_Flocking::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	AgentToEvadeSteering->SetTarget( MouseTarget );
 
 	pFlock->ImGuiRender(WindowPos, WindowSize);
 	pFlock->Tick(DeltaTime);
 	pFlock->RenderDebug();
 	if (bUseMouseTarget)
+	{
+		AgentToEvadeSteering->SetTarget( MouseTarget );
 		pFlock->SetTarget_Seek(MouseTarget);
-	
-	
+	}
 }
 

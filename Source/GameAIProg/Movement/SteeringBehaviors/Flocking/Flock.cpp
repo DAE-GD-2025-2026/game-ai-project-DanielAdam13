@@ -14,10 +14,12 @@ Flock::Flock(
 	, FlockSize{ FlockSize }
 	, NeighRadSqr{ NeighborhoodRadius * NeighborhoodRadius }
 	, pAgentToEvade{pAgentToEvade}
+	, TrimWorldSize( WorldSize )
+	, bShouldTrimWorld( bTrimWorld )
 {
 	Agents.Reserve(FlockSize);
 	
-	// 1. Create the new behaviors...
+	// 1. Create the new single behaviors...
 	pSeparationBehavior = std::make_unique<Separation>(this);
 	pCohesionBehavior = std::make_unique<Cohesion>(this);
 	pVelMatchBehavior = std::make_unique<VelocityMatch>(this);
@@ -27,8 +29,7 @@ Flock::Flock(
 	pEvadeBehavior = std::make_unique<Evade>();
 	pEvadeBehavior->SetAgentTarget( pAgentToEvade );
 	
-	// Then initialize:
-	// TODO: Change weights later...
+	// 2. Then initialize the combined behaviors:
 	pBlendedSteering = std::make_unique<BlendedSteering>(std::vector<BlendedSteering::WeightedBehavior>{
 	{pCohesionBehavior.get(), 0.f}, {pSeparationBehavior.get(), 0.9f}, 
 		{pVelMatchBehavior.get(), 0.5f}, {pSeekBehavior.get(), 0.1f},
@@ -36,7 +37,7 @@ Flock::Flock(
 	pPrioritySteering = std::make_unique<PrioritySteering>(std::vector<ISteeringBehavior*>{pEvadeBehavior.get(),
 		pBlendedSteering.get()});
 	
-	// 2. Initialize and spawn flock container's agents
+	// 3. Initialize and spawn flock container's agents
 	for (int i{}; i < FlockSize; ++i)
 	{
 		const double PosRandX{static_cast<double>(FMath::FRandRange(-WorldSize, WorldSize))};
@@ -45,7 +46,6 @@ Flock::Flock(
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		
-		// Z coordinate might be wrong
 		ASteeringAgent* Agent =
 			pWorld->SpawnActor<ASteeringAgent>(AgentClass, 
 				FVector{PosRandX, PosRandY, 90}, FRotator::ZeroRotator, Params);
@@ -56,25 +56,27 @@ Flock::Flock(
 			continue;
 		}
 
+		// 4. Set Agent's main behavior - priority
 		Agent->SetSteeringBehavior(pPrioritySteering.get());
 
 		Agents.Add( Agent );
 	}
 	
-	// for (ASteeringAgent* ag : Agents)
-	// {
-	// 	ag->SetSteeringBehavior( pPrioritySteering.get() );
-	// }
-	
-	// 3. Initialize memory pool for neighbors
-	Neighbors.SetNum( FlockSize );
+	// 5. Initialize memory pool for neighbors
+	Neighbors.SetNum( Agents.Num() );
 	NrOfNeighbors = 0;
-	
 }
 
 Flock::~Flock()
 {
- // TODO: Cleanup any additional data
+	for (ASteeringAgent* Agent : Agents)
+	{
+		if (Agent && !Agent->IsPendingKillPending())
+		{
+			Agent->Destroy(  );
+		}
+	}
+	Agents.Empty(  );
 }
 
 void Flock::Tick(float DeltaTime)
@@ -90,13 +92,13 @@ void Flock::Tick(float DeltaTime)
 		// Update the agent (-> the Steering Behaviors use the neighbors in the memory pool)
 		ag->Tick( DeltaTime );
 		
-		// TODO: trim the agent to the world
+		TrimAgentToWorld( ag );
 	}
 }
 
 void Flock::RenderDebug()
 {
- // TODO: Render all the agents in the flock
+	RenderNeighborhood();
 }
 
 void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
@@ -141,10 +143,12 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 		// ImGUI CHECKBOXES for debug rendering here
 		ImGui::Text("Flocking");
 		ImGui::Spacing();
-
-		// Debug checkbox
+		
 		ImGui::Checkbox("Show Neighborhood Debug", &DebugRenderNeighborhood);
+		ImGui::Checkbox("Show Render Partitions", &DebugRenderPartitions);
+		ImGui::Checkbox("Show Steering", &DebugRenderSteering);
 
+		ImGui::Spacing();
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 
@@ -186,9 +190,6 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 	}
 #pragma endregion
 #endif
-	
-	
-	RenderNeighborhood();
 }
 
 void Flock::RenderNeighborhood()
@@ -217,10 +218,33 @@ void Flock::RenderNeighborhood()
 			if (!Neighbors[i])
 				continue;
 
-			DrawDebugSphere( pWorld,Neighbors[i]->GetActorLocation(), 25.f, 
+			DrawDebugSphere( pWorld,Neighbors[i]->GetActorLocation(), 35.f, 
 				8, FColor::Green,false,-1.f,0,2.f);
 		}
 	}
+}
+
+void Flock::TrimAgentToWorld(ASteeringAgent* Agent) const
+{
+	if (!bShouldTrimWorld || !Agent)
+		return;
+	
+	FVector Pos{ Agent->GetActorLocation() };
+	
+	const float Min{ -TrimWorldSize };
+	const float Max{ TrimWorldSize };
+	
+	if (Pos.X < Min) 
+		Pos.X = Max;
+	else if (Pos.X > Max) 
+		Pos.X = Min;
+
+	if (Pos.Y < Min) 
+		Pos.Y = Max;
+	else if (Pos.Y > Max) 
+		Pos.Y = Min;
+
+	Agent->SetActorLocation(Pos);
 }
 
 #ifndef GAMEAI_USE_SPACE_PARTITIONING
@@ -256,7 +280,7 @@ FVector2D Flock::GetAverageNeighborPos() const
 	if (NrOfNeighbors == 0)
 		return AvgPosition;
 	
-	// Sum all Fvector2d of neighbors
+	// Sum all FVector2D of neighbors
 	for (int i{}; i< NrOfNeighbors; ++i)
 	{
 		const FVector NeighborPos{Neighbors[i]->GetActorLocation()};
@@ -289,10 +313,8 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 	return AvgVelocity;
 }
 
-void Flock::SetTarget_Seek(FSteeringParams const& Target)
+void Flock::SetTarget_Seek(FSteeringParams const& Target) const
 {
- // TODO: Implement
-	
-	
+	pSeekBehavior->SetTarget( Target );
 }
 

@@ -42,7 +42,7 @@ public:
 	FVector2D GetAverageNeighborPos() const;
 	FVector2D GetAverageNeighborVelocity() const;
 
-	void SetTarget_Seek(FSteeringParams const & Target);
+	void SetTarget_Seek(FSteeringParams const & Target) const;
 
 private:
 	// For debug rendering purposes
@@ -82,4 +82,9 @@ private:
 	bool DebugRenderPartitions{true};
 
 	void RenderNeighborhood();
+	
+	float TrimWorldSize{0.f};
+	bool bShouldTrimWorld{false};
+	
+	void TrimAgentToWorld(ASteeringAgent* Agent) const;
 };
