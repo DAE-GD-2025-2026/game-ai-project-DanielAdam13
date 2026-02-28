@@ -82,21 +82,20 @@ void CellSpace::UpdateAgentCell(ASteeringAgent& Agent, const FVector2D& OldPos)
 	Cells[NewCellIndex].Agents.push_back( &Agent );
 }
 
-void CellSpace::RegisterNeighbors(ASteeringAgent& Agent, float QueryRadius)
+void CellSpace::RegisterNeighbors(const ASteeringAgent& Agent, const float QueryRadius)
 {
-	// TODO Register the neighbors for the provided agent
-	// TODO Only check the cells that are within the radius of the neighborhood
+	// Register the neighbors for the provided agent
 	const FVector2D AgentPosition{Agent.GetActorLocation().X, Agent.GetActorLocation().Y}; 
 	
-	FRect QueryRect{};
+	FRect QueryRect;
 	QueryRect.Min = AgentPosition - FVector2D(QueryRadius, QueryRadius);
 	QueryRect.Max = AgentPosition + FVector2D(QueryRadius, QueryRadius);
 	
 	NrOfNeighbors = 0;
 	for (Cell& cell : Cells)
 	{
-		// Find overlapping rects
-		if (DoRectsOverlap( cell.BoundingBox, QueryRect ))
+		// Only check the cells that are within the radius of the neighborhood
+		if (!DoRectsOverlap( cell.BoundingBox, QueryRect )) // Skip non-overlapping rects
 			continue;
 		
 		// !!!!!! Loop only over agents in overlapped cell !!!!!!
@@ -111,8 +110,8 @@ void CellSpace::RegisterNeighbors(ASteeringAgent& Agent, float QueryRadius)
 			
 			if (DistanceSqr < QueryRadius * QueryRadius)
 			{
-				++NrOfNeighbors;
 				Neighbors[NrOfNeighbors] = OtherAgent;
+				++NrOfNeighbors;
 			}
 		}
 	}
@@ -126,7 +125,19 @@ void CellSpace::EmptyCells()
 
 void CellSpace::RenderCells() const
 {
-	// TODO Render the cells with the number of agents inside of it
+	// Render the cells with the number of agents inside of it
+	for (const Cell& Cell : Cells)
+	{
+		const auto Points{Cell.GetRectPoints()};
+		
+		DrawDebugLine( pWorld, FVector(Points[0], 90),
+			FVector(Points[1], 90),
+			FColor::Blue);
+		
+		DrawDebugLine( pWorld, FVector(Points[1], 90),
+			FVector(Points[2], 90),
+			FColor::Blue);
+	}
 }
 
 int CellSpace::PositionToIndex(FVector2D const & Pos) const

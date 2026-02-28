@@ -49,18 +49,18 @@ private:
 	// For debug rendering purposes
 	UWorld* pWorld{nullptr};
 	
-	int FlockSize{0};
+	int FlockSize{ 100 };
 	TArray<ASteeringAgent*> Agents{};
 	
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
 	std::unique_ptr<CellSpace> pPartitionedSpace{};
-	int NrOfCellsX{ 10 };
+	const int NrOfCellsX{ 10 };
 	TArray<FVector2D> OldPositions{};
 #else // No space partitioning
 	TArray<ASteeringAgent*> Neighbors{};
 #endif // USE_SPACE_PARTITIONING
 	
-	const float NeighborhoodRadius{200.f};
+	const float NeighborhoodRadius{400.f};
 	const float NeighRadSqr;
 	int NrOfNeighbors{0};
 

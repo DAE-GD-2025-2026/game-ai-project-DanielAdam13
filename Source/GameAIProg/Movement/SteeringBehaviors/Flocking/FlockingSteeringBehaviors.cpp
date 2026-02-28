@@ -14,6 +14,8 @@ SteeringOutput Cohesion::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 		return Steering;
 	if (pFlock->GetNrOfNeighbors() == 0)
 		return Steering;
+	if (pFlock->GetNrOfNeighbors() <= 0)
+		return Steering;
 	
 	Target.Position = pFlock->GetAverageNeighborPos();
 	Steering = Seek::CalculateSteering(deltaT, pAgent);
@@ -29,16 +31,20 @@ SteeringOutput Separation::CalculateSteering(float deltaT, ASteeringAgent& pAgen
 	
 	const auto& Neighbors{pFlock->GetNeighbors()};
 	
-	for (int i{}; i< pFlock->GetNrOfNeighbors(); ++i)
+	for (int i = 0; i < pFlock->GetNrOfNeighbors(); ++i)
 	{
-		const FVector AgentToNeighbor{pAgent.GetActorLocation() - Neighbors[i]->GetActorLocation()};
-		const float Distance{static_cast<float>(AgentToNeighbor.Length())};
-		
-		if (Distance > 0.f)
-		{
-			Force += FVector2D(AgentToNeighbor.X, AgentToNeighbor.Y) / Distance;
-		}
+		const FVector NeighborToAgent{pAgent.GetActorLocation() - 
+			Neighbors[i]->GetActorLocation()};
+
+		const FVector2D Offset(NeighborToAgent.X, NeighborToAgent.Y);
+		float DistSqr = Offset.SizeSquared();
+
+		if (DistSqr > 1.f)
+			Force += Offset / DistSqr;
 	}
+
+	Force.Normalize();
+	Force *= pAgent.GetMaxLinearSpeed();
 	
 	Steering.LinearVelocity = Force;
 	Steering.IsValid = true;

@@ -20,6 +20,13 @@ Flock::Flock(
 {
 	Agents.Reserve(FlockSize);
 	
+#ifdef GAMEAI_USE_SPACE_PARTITIONING
+	pPartitionedSpace = std::make_unique<CellSpace>(pWorld, TrimWorldSize * 2.f, TrimWorldSize * 2.f, 
+		NrOfCellsX, NrOfCellsX, FlockSize);
+	
+	OldPositions.SetNum( FlockSize );
+#endif
+	
 	// 1. Create the new single behaviors...
 	pSeparationBehavior = std::make_unique<Separation>(this);
 	pCohesionBehavior = std::make_unique<Cohesion>(this);
@@ -71,15 +78,7 @@ Flock::Flock(
 	// 5. Initialize memory pool for neighbors
 	Neighbors.SetNum( Agents.Num() );
 	NrOfNeighbors = 0;
-#else 
-	const float worldSize = TrimWorldSize * 2.f;
-	
-	pPartitionedSpace = std::make_unique<CellSpace>(pWorld, worldSize, worldSize, 
-		NrOfCellsX, NrOfCellsX, FlockSize);
-	
-	OldPositions.SetNum( FlockSize );
 #endif
-	
 }
 
 Flock::~Flock()
@@ -116,8 +115,15 @@ void Flock::Tick(float DeltaTime)
 		auto* CurrentAgent = Agents[i];
 		const FVector2D NewPos{FVector2D(CurrentAgent->GetActorLocation())};
 		
+		// 1. Update current agent cell
 		pPartitionedSpace->UpdateAgentCell( *CurrentAgent, OldPositions[i] );
 		OldPositions[i] = NewPos;
+		
+		// 2. THEN Register neighbors
+		pPartitionedSpace->RegisterNeighbors( *CurrentAgent, NeighborhoodRadius );
+		
+		CurrentAgent->Tick(DeltaTime);
+		TrimAgentToWorld(CurrentAgent);
 	}
 #endif
 }
@@ -231,14 +237,14 @@ void Flock::RenderNeighborhood()
 {
 	if (DebugRenderNeighborhood)
 	{
-#ifndef GAMEAI_USE_SPACE_PARTITIONING
 		if (Agents.Num() == 0)
 			return;
 	
 		ASteeringAgent* FirstAgent { Agents[0]};
 		if (!FirstAgent)
 			return;
-	
+		
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 		// Recompute so it is up to date
 		RegisterNeighbors(FirstAgent);
 	
@@ -258,9 +264,22 @@ void Flock::RenderNeighborhood()
 				8, FColor::Green,false,-1.f,0,2.f);
 		}
 #else
+		pPartitionedSpace->RegisterNeighbors( *FirstAgent, NeighborhoodRadius );
 		
+		const FVector Center{ FirstAgent->GetActorLocation()};
+	
+		// 1. Draw neighborhood radius
+		DrawDebugCircle(
+			pWorld, Center,NeighborhoodRadius,32, FColor::Yellow,false, -1.f,0,
+			2.f,FVector(1,0,0),FVector(0,1,0),false);
+
 #endif
 		
+	}
+	
+	if (DebugRenderPartitions)
+	{
+		pPartitionedSpace->RenderCells();
 	}
 }
 
@@ -341,7 +360,22 @@ FVector2D Flock::GetAverageNeighborPos() const
 	
 	return AvgPosition;
 #else
-	return {};
+	const auto& Neighbors { pPartitionedSpace->GetNeighbors()};
+	const int NeighborCount{ pPartitionedSpace->GetNrOfNeighbors() };
+	
+	if (NeighborCount == 0)
+		return FVector2D::ZeroVector;
+	
+	FVector2D AveragePos{0.f, 0.f};
+	
+	for (int i{}; i < NeighborCount; ++i)
+	{
+		AveragePos += FVector2D(Neighbors[i]->GetActorLocation().X, 
+			Neighbors[i]->GetActorLocation().Y);
+	}
+	
+	AveragePos /= static_cast<float>(NeighborCount);
+	return AveragePos;
 #endif
 	
 }
@@ -367,7 +401,21 @@ FVector2D Flock::GetAverageNeighborVelocity() const
 	
 	return AvgVelocity;
 #else
-	return {};
+	const auto& Neighbors { pPartitionedSpace->GetNeighbors()};
+	const int NeighborCount{ pPartitionedSpace->GetNrOfNeighbors() };
+	
+	if (NeighborCount == 0)
+		return FVector2D::ZeroVector;
+	
+	FVector2D AverageVel{0.f, 0.f};
+	
+	for (int i{}; i< NeighborCount; ++i)
+	{
+		AverageVel += Neighbors[i]->GetLinearVelocity();
+	}
+	
+	AverageVel /= static_cast<float>(NeighborCount);
+	return AverageVel;
 #endif
 	
 }
