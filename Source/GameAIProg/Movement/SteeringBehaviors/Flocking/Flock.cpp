@@ -87,7 +87,7 @@ void Flock::Tick(float DeltaTime)
 		// Register the neighbors for this agent (-> fill the memory pool with the neighbors for the currently evaluated agent)
 		RegisterNeighbors( ag );
 		
-		// Update the agent (-> the steeringbehaviors use the neighbors in the memory pool)
+		// Update the agent (-> the Steering Behaviors use the neighbors in the memory pool)
 		ag->Tick( DeltaTime );
 		
 		// TODO: trim the agent to the world
@@ -136,23 +136,91 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 
 		ImGui::Text("Flocking");
 		ImGui::Spacing();
+		
 
-  // TODO: implement ImGUI checkboxes for debug rendering here
+		// ImGUI CHECKBOXES for debug rendering here
+		ImGui::Text("Flocking");
+		ImGui::Spacing();
+
+		// Debug checkbox
+		ImGui::Checkbox("Show Neighborhood Debug", &DebugRenderNeighborhood);
 
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 
-  // TODO: implement ImGUI sliders for steering behavior weights here
+		// SLIDERS FOR BEHAVIOR WEIGHTS
+		auto& Weights = pBlendedSteering->GetWeightedBehaviorsRef();
+		
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Cohesion",Weights[0].Weight,
+		0.f, 1.f,[&](float v)
+				{
+					Weights[0].Weight = v;
+				},"%.2f");
+ 
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Separation",Weights[1].Weight,
+		0.f, 1.f,[&](float v)
+				{
+					Weights[1].Weight = v;
+				}, "%.2f");
+		
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Velocity Match",Weights[2].Weight,
+		0.f, 1.f,[&](float v)
+				{
+					Weights[2].Weight = v;
+				},"%.2f");
+		
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Seek",Weights[3].Weight,
+		0.f, 1.f,[&](float v)
+				{
+					Weights[3].Weight = v;
+				},"%.2f");
+				
+		ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",Weights[4].Weight,
+		0.f, 1.f,[&](float v)
+				{
+					Weights[4].Weight = v;
+				},"%.2f");
+		
 		//End
 		ImGui::End();
 	}
 #pragma endregion
 #endif
+	
+	
+	RenderNeighborhood();
 }
 
 void Flock::RenderNeighborhood()
 {
- // TODO: Debugrender the neighbors for the first agent in the flock
+	if (DebugRenderNeighborhood)
+	{
+		if (Agents.Num() == 0)
+			return;
+	
+		ASteeringAgent* FirstAgent { Agents[0]};
+		if (!FirstAgent)
+			return;
+	
+		// Recompute so it is up to date
+		RegisterNeighbors(FirstAgent);
+	
+		const FVector Center{ FirstAgent->GetActorLocation()};
+	
+		// 1. Draw neighborhood radius
+		DrawDebugCircle(
+			pWorld, Center,NeighborhoodRadius,32, FColor::Yellow,false, -1.f,0,
+			2.f,FVector(1,0,0),FVector(0,1,0),false);
+	
+		for (int i = 0; i < NrOfNeighbors; ++i)
+		{
+			if (!Neighbors[i])
+				continue;
+
+			DrawDebugSphere( pWorld,Neighbors[i]->GetActorLocation(), 25.f, 
+				8, FColor::Green,false,-1.f,0,2.f);
+		}
+	}
 }
 
 #ifndef GAMEAI_USE_SPACE_PARTITIONING

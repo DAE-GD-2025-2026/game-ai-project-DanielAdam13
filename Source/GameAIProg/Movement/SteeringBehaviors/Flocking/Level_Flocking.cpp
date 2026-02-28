@@ -21,7 +21,7 @@ void ALevel_Flocking::BeginPlay()
 	
 	pAgentToEvade = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
 		FVector{0, 0, 90},FRotator::ZeroRotator);
-	AgentToEvadeSteering = std::make_unique<Seek>(  );
+	AgentToEvadeSteering = std::make_unique<Arrive>(  );
 	AgentToEvadeSteering->SetTarget( MouseTarget );
 	pAgentToEvade->SetSteeringBehavior(AgentToEvadeSteering.get());
 

@@ -5,17 +5,17 @@
 
 SteeringOutput ISteeringBehavior::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
-    if (Agent.GetWorld())
-    {
-        // --- Draw target point ---
-        DrawDebugSphere(
-            Agent.GetWorld(),
-            FVector(Target.Position, Agent.GetActorLocation().Z),
-            10.f,
-            12,
-            FColor::Red
-        );
-    }
+    // if (Agent.GetWorld())
+    // {
+    //     // --- Draw target point ---
+    //     DrawDebugSphere(
+    //         Agent.GetWorld(),
+    //         FVector(Target.Position, Agent.GetActorLocation().Z),
+    //         10.f,
+    //         12,
+    //         FColor::Red
+    //     );
+    // }
 
     return SteeringOutput();
 }
@@ -195,15 +195,8 @@ SteeringOutput Evade::CalculateSteering(float deltaT, ASteeringAgent& Agent)
             Agent.GetWorld(),
             FVector(Target.Position.X, Target.Position.Y, Agent.GetActorLocation().Z), // center
             m_EvadeRadius,  
-            32, 
-            FColor::Purple, 
-            false, 
-            -1.f, 
-            0,   
-            2.f,  
-            FVector(1, 0, 0), 
-            FVector(0, 1, 0), 
-            true 
+            32, FColor::Purple, false, -1.f, 0,   
+            2.f,  FVector(1, 0, 0), FVector(0, 1, 0), true 
         );
     }
     
