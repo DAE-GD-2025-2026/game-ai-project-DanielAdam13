@@ -114,7 +114,7 @@ public:
 
 private:
 	const float m_PredictionTimer{ 0.2f };
-	const float m_EvadeRadius{ 400.f };
+	const float m_EvadeRadius{ 500.f };
 	
 	bool IsActorInTargetRange(ASteeringAgent& Agent, const FVector2D& CircleCenter) const;
 };

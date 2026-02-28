@@ -23,7 +23,7 @@ struct Cell final
 	std::vector<FVector2D> GetRectPoints() const;
 	
 	// all the agents currently in this cell
-	std::list<ASteeringAgent*> Agents;
+	std::list<ASteeringAgent*> Agents; // Reference to the agents from Flock
 	FRect BoundingBox;
 };
 

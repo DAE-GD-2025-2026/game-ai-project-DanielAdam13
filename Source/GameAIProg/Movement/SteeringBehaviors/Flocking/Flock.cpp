@@ -1,5 +1,6 @@
 #include "Flock.h"
 #include "FlockingSteeringBehaviors.h"
+#include "Movement/SteeringBehaviors/SpacePartitioning/SpacePartitioning.h"
 #include "Shared/ImGuiHelpers.h"
 
 
@@ -60,11 +61,25 @@ Flock::Flock(
 		Agent->SetSteeringBehavior(pPrioritySteering.get());
 
 		Agents.Add( Agent );
+		
+		// Store the agent pointer for space partitioning
+		pPartitionedSpace->AddAgent( *Agent );
+		OldPositions[i] = FVector2D(PosRandX, PosRandY);
 	}
 	
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 	// 5. Initialize memory pool for neighbors
 	Neighbors.SetNum( Agents.Num() );
 	NrOfNeighbors = 0;
+#else 
+	const float worldSize = TrimWorldSize * 2.f;
+	
+	pPartitionedSpace = std::make_unique<CellSpace>(pWorld, worldSize, worldSize, 
+		NrOfCellsX, NrOfCellsX, FlockSize);
+	
+	OldPositions.SetNum( FlockSize );
+#endif
+	
 }
 
 Flock::~Flock()
@@ -81,6 +96,7 @@ Flock::~Flock()
 
 void Flock::Tick(float DeltaTime)
 {
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 	// For every agent:
 	for (ASteeringAgent* ag : Agents)
 	{
@@ -94,6 +110,16 @@ void Flock::Tick(float DeltaTime)
 		
 		TrimAgentToWorld( ag );
 	}
+#else
+	for (size_t i{}; i < Agents.Num(); ++i)
+	{
+		auto* CurrentAgent = Agents[i];
+		const FVector2D NewPos{FVector2D(CurrentAgent->GetActorLocation())};
+		
+		pPartitionedSpace->UpdateAgentCell( *CurrentAgent, OldPositions[i] );
+		OldPositions[i] = NewPos;
+	}
+#endif
 }
 
 void Flock::RenderDebug()
@@ -196,6 +222,7 @@ void Flock::RenderNeighborhood()
 {
 	if (DebugRenderNeighborhood)
 	{
+#ifndef GAMEAI_USE_SPACE_PARTITIONING
 		if (Agents.Num() == 0)
 			return;
 	
@@ -221,6 +248,10 @@ void Flock::RenderNeighborhood()
 			DrawDebugSphere( pWorld,Neighbors[i]->GetActorLocation(), 35.f, 
 				8, FColor::Green,false,-1.f,0,2.f);
 		}
+#else
+		
+#endif
+		
 	}
 }
 
