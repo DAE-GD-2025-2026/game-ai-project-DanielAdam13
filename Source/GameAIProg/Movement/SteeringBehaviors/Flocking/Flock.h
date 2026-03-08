@@ -46,7 +46,7 @@ private:
 	// For debug rendering purposes
 	UWorld* pWorld{nullptr};
 	
-	int FlockSize{ 400 };
+	int FlockSize{ 600 };
 	TArray<ASteeringAgent*> Agents{};
 	
 	// For Spacial Partitioning

@@ -70,7 +70,7 @@ SteeringOutput PrioritySteering::CalculateSteering(float DeltaT, ASteeringAgent&
 			break;
 	}
 
-	//If none of the behavior return a valid output, last behavior is returned
+	// If none of the behavior return a valid output, last behavior is returned
 	return Steering;
 }
 
@@ -78,8 +78,8 @@ void PrioritySteering::SetAgentTarget(ASteeringAgent* OtherAgent)
 {
 	ISteeringBehavior::SetAgentTarget( OtherAgent );
 	
-	for (auto* behavior : m_PriorityBehaviors)
+	for (auto* Behavior : m_PriorityBehaviors)
 	{
-		behavior->SetAgentTarget(OtherAgent);
+		Behavior->SetAgentTarget(OtherAgent);
 	}
 }

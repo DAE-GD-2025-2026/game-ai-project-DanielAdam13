@@ -89,12 +89,12 @@ void CellSpace::RegisterNeighbors(const ASteeringAgent& Agent, const float Query
 {
 	// Register the neighbors for the provided agent
 	const FVector2D AgentPosition{Agent.GetActorLocation().X, Agent.GetActorLocation().Y}; 
-	
+
 	const float MinX = AgentPosition.X - QueryRadius;
 	const float MaxX = AgentPosition.X + QueryRadius;
 	const float MinY = AgentPosition.Y - QueryRadius;
 	const float MaxY = AgentPosition.Y + QueryRadius;
-
+	
 	int MinCol{static_cast<int>((MinX - CellOrigin.X) / CellWidth)};
 	int MaxCol{static_cast<int>((MaxX - CellOrigin.X) / CellWidth)};
 	int MinRow{static_cast<int>((MinY - CellOrigin.Y) / CellHeight)};
@@ -107,14 +107,15 @@ void CellSpace::RegisterNeighbors(const ASteeringAgent& Agent, const float Query
 	
 	NrOfNeighbors = 0;
 	
+	// Check only neighboring cells --->
 	for (int Row{MinRow}; Row <= MaxRow; ++Row)
 	{
 		for (int Col{MinCol}; Col <= MaxCol; ++Col)
 		{
+			// No need for DpRectsOverlap since this calculation is already made above
 			const int Index{ Row * NrOfCols + Col };
-			const Cell& CurrentCell{ Cells[Index] };
 				
-			for (ASteeringAgent* OtherAgent : CurrentCell.Agents)
+			for (ASteeringAgent* OtherAgent : Cells[Index].Agents)
 			{
 				if (OtherAgent == &Agent)
 					continue;
