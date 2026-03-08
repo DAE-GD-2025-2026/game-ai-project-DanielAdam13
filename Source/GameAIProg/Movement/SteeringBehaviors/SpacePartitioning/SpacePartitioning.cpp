@@ -78,7 +78,10 @@ void CellSpace::UpdateAgentCell(ASteeringAgent& Agent, const FVector2D& OldPos)
 		return;
 	
 	// Remove from old, add to new
-	Cells[OldCellIndex].Agents.remove( &Agent );
+	auto& OldNeighborAgents{ Cells[OldCellIndex].Agents };
+
+	std::erase( OldNeighborAgents, &Agent);
+	
 	Cells[NewCellIndex].Agents.push_back( &Agent );
 }
 
@@ -87,31 +90,44 @@ void CellSpace::RegisterNeighbors(const ASteeringAgent& Agent, const float Query
 	// Register the neighbors for the provided agent
 	const FVector2D AgentPosition{Agent.GetActorLocation().X, Agent.GetActorLocation().Y}; 
 	
-	FRect QueryRect;
-	QueryRect.Min = AgentPosition - FVector2D(QueryRadius, QueryRadius);
-	QueryRect.Max = AgentPosition + FVector2D(QueryRadius, QueryRadius);
+	const float MinX = AgentPosition.X - QueryRadius;
+	const float MaxX = AgentPosition.X + QueryRadius;
+	const float MinY = AgentPosition.Y - QueryRadius;
+	const float MaxY = AgentPosition.Y + QueryRadius;
+
+	int MinCol{static_cast<int>((MinX - CellOrigin.X) / CellWidth)};
+	int MaxCol{static_cast<int>((MaxX - CellOrigin.X) / CellWidth)};
+	int MinRow{static_cast<int>((MinY - CellOrigin.Y) / CellHeight)};
+	int MaxRow{static_cast<int>((MaxY - CellOrigin.Y) / CellHeight)};
+
+	MinCol = FMath::Clamp(MinCol, 0, NrOfCols - 1);
+	MaxCol = FMath::Clamp(MaxCol, 0, NrOfCols - 1);
+	MinRow = FMath::Clamp(MinRow, 0, NrOfRows - 1);
+	MaxRow = FMath::Clamp(MaxRow, 0, NrOfRows - 1);
 	
 	NrOfNeighbors = 0;
-	for (Cell& cell : Cells)
+	
+	for (int Row{MinRow}; Row <= MaxRow; ++Row)
 	{
-		// Only check the cells that are within the radius of the neighborhood
-		if (!DoRectsOverlap( cell.BoundingBox, QueryRect )) // Skip non-overlapping rects
-			continue;
-		
-		// !!!!!! Loop only over agents in overlapped cell !!!!!!
-		for (ASteeringAgent* OtherAgent : cell.Agents)
+		for (int Col{MinCol}; Col <= MaxCol; ++Col)
 		{
-			if (OtherAgent == &Agent)
-				continue;;
-			
-			const float DistanceSqr{static_cast<float>(FVector::DistSquared( 
-				Agent.GetActorLocation(), 
-				OtherAgent->GetActorLocation())) };
-			
-			if (DistanceSqr < QueryRadius * QueryRadius)
+			const int Index{ Row * NrOfCols + Col };
+			const Cell& CurrentCell{ Cells[Index] };
+				
+			for (ASteeringAgent* OtherAgent : CurrentCell.Agents)
 			{
-				Neighbors[NrOfNeighbors] = OtherAgent;
-				++NrOfNeighbors;
+				if (OtherAgent == &Agent)
+					continue;
+			
+				const float DistanceSqr{static_cast<float>(FVector::DistSquared( 
+					Agent.GetActorLocation(), 
+					OtherAgent->GetActorLocation())) };
+			
+				if (DistanceSqr < QueryRadius * QueryRadius)
+				{
+					Neighbors[NrOfNeighbors] = OtherAgent;
+					++NrOfNeighbors;
+				}
 			}
 		}
 	}

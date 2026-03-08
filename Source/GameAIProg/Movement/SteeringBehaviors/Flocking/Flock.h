@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 // Toggle this define to enable/disable spatial partitioning
-#define GAMEAI_USE_SPACE_PARTITIONING
+//#define GAMEAI_USE_SPACE_PARTITIONING
 
 #include "FlockingSteeringBehaviors.h"
 #include "Movement/SteeringBehaviors/SteeringAgent.h"
@@ -10,9 +10,8 @@
 #include <memory>
 #include "imgui.h"
 
-#ifdef GAMEAI_USE_SPACE_PARTITIONING
+// For Spacial Partitioning
 class CellSpace;
-#endif
 
 class Flock final
 {
@@ -31,14 +30,12 @@ public:
 	void RenderDebug();
 	void ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize);
 
-#ifdef GAMEAI_USE_SPACE_PARTITIONING
+// For Spacial Partitioning
 	const TArray<ASteeringAgent*>& GetNeighbors() const;
 	int GetNrOfNeighbors() const;
-#else // No space partitioning
-	void RegisterNeighbors(ASteeringAgent* const Agent);
-	int GetNrOfNeighbors() const { return NrOfNeighbors; }
-	const TArray<ASteeringAgent*>& GetNeighbors() const { return Neighbors; }
-#endif // USE_SPACE_PARTITIONING
+// No spacial partitioning
+	void RegisterNeighbors(const ASteeringAgent* const Agent);
+
 
 	FVector2D GetAverageNeighborPos() const;
 	FVector2D GetAverageNeighborVelocity() const;
@@ -49,16 +46,17 @@ private:
 	// For debug rendering purposes
 	UWorld* pWorld{nullptr};
 	
-	int FlockSize{ 100 };
+	int FlockSize{ 400 };
 	TArray<ASteeringAgent*> Agents{};
 	
-#ifdef GAMEAI_USE_SPACE_PARTITIONING
+	// For Spacial Partitioning
 	std::unique_ptr<CellSpace> pPartitionedSpace{};
-	const int NrOfCellsX{ 10 };
+	const int NrOfCellsX{ 15 };
 	TArray<FVector2D> OldPositions{};
-#else // No space partitioning
+	
+	// No spacial partitioning
 	TArray<ASteeringAgent*> Neighbors{};
-#endif // USE_SPACE_PARTITIONING
+	
 	
 	const float NeighborhoodRadius{400.f};
 	const float NeighRadSqr;
@@ -79,8 +77,8 @@ private:
 
 	// UI and rendering
 	bool DebugRenderSteering{false};
-	bool DebugRenderNeighborhood{true};
-	bool DebugRenderPartitions{true};
+	bool DebugRenderNeighborhood{false};
+	bool DebugRenderPartitions{false};
 
 	void RenderNeighborhood();
 	
@@ -88,4 +86,6 @@ private:
 	bool bShouldTrimWorld{false};
 	
 	void TrimAgentToWorld(ASteeringAgent* Agent) const;
+	
+	bool SpacialPartitioningActive{true};
 };

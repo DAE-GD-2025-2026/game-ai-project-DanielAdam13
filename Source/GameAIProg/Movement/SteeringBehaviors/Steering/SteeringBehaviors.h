@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Movement/SteeringBehaviors/SteeringHelpers.h>
-#include "Kismet/KismetMathLibrary.h"
+//#include "Kismet/KismetMathLibrary.h"
 
 class ASteeringAgent;
 
@@ -25,6 +25,8 @@ public:
 	{
 		m_TargetAgent = OtherAgent;
 	}
+	
+	virtual float GetEvadeRadius() const { return 0.f; };
 
 protected:
 	FTargetData Target;
@@ -111,12 +113,14 @@ public:
 
 	// Evade Behaviour
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+	
+	virtual float GetEvadeRadius() const override { return EvadeRadius; }
 
 private:
-	const float m_PredictionTimer{ 0.2f };
-	const float m_EvadeRadius{ 500.f };
+	const float PredictionTimer{ 0.2f };
+	const float EvadeRadius{ 400.f };
 	
-	bool IsActorInTargetRange(ASteeringAgent& Agent, const FVector2D& CircleCenter) const;
+	bool IsActorInTargetRange(const ASteeringAgent& Agent, const FVector2D& CircleCenter) const;
 };
 
 class Wander final : public Seek

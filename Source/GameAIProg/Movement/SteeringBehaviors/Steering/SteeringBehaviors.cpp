@@ -55,19 +55,19 @@ SteeringOutput Arrive::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     ISteeringBehavior::CalculateSteering(deltaT, Agent);
     SteeringOutput Steering{};
 
-    FVector2D agentToTargetVector{ Target.Position - Agent.GetPosition() };
-    float agentToTargetVectorLength{ float(agentToTargetVector.Length()) };
+    FVector2D AgentToTargetVector{ Target.Position - Agent.GetPosition() };
+    const float AgentToTargetVectorLength{ static_cast<float>(AgentToTargetVector.Length()) };
 
     // Outside outer radius
-    if (agentToTargetVectorLength > m_OuterRadius)
+    if (AgentToTargetVectorLength > m_OuterRadius)
     {
         m_MaxLinearVelocity = Seek::CalculateSteering(deltaT, Agent).LinearVelocity;
         Steering.LinearVelocity = m_MaxLinearVelocity;
     }
     // Between radiuses - slow down
-    else if (agentToTargetVectorLength > m_InnerRadius)
+    else if (AgentToTargetVectorLength > m_InnerRadius)
     {
-        Steering.LinearVelocity = agentToTargetVector / (m_OuterRadius - m_InnerRadius);
+        Steering.LinearVelocity = AgentToTargetVector / (m_OuterRadius - m_InnerRadius);
     }
     // Else it is default initialized -> 0f
 
@@ -183,22 +183,10 @@ SteeringOutput Evade::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     if (!m_TargetAgent)
         return Steering;
 
-    PredictAndSetTarget(m_PredictionTimer);
+    PredictAndSetTarget(PredictionTimer);
 
     // Agent has updated target
     Steering = Flee::CalculateSteering(deltaT, Agent);
-    
-    // Draw evade circle around target
-    if (Agent.GetWorld())
-    {
-        DrawDebugCircle(
-            Agent.GetWorld(),
-            FVector(Target.Position.X, Target.Position.Y, Agent.GetActorLocation().Z), // center
-            m_EvadeRadius,  
-            32, FColor::Purple, false, -1.f, 0,   
-            2.f,  FVector(1, 0, 0), FVector(0, 1, 0), true 
-        );
-    }
     
     // Change the IsValid flag dependent on if evade actor is inside of target range
     // The flag is used in Priority Steering
@@ -208,9 +196,9 @@ SteeringOutput Evade::CalculateSteering(float deltaT, ASteeringAgent& Agent)
     return Steering;
 }
 
-bool Evade::IsActorInTargetRange(ASteeringAgent& Agent, const FVector2D& CircleCenter) const
+bool Evade::IsActorInTargetRange(const ASteeringAgent& Agent, const FVector2D& CircleCenter) const
 {
     const FVector2D AgentLocation{ Agent.GetActorLocation()};
     
-    return FVector2D::DistSquared(AgentLocation, CircleCenter) <= m_EvadeRadius * m_EvadeRadius;
+    return FVector2D::DistSquared(AgentLocation, CircleCenter) <= EvadeRadius * EvadeRadius;
 }

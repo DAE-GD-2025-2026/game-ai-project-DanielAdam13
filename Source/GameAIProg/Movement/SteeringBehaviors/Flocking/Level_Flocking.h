@@ -23,7 +23,7 @@ protected:
 
 	bool bUseMouseTarget{true};
 
-	const int FlockSize{ 400 };
+	const int FlockSize{ 800 };
 
 	std::unique_ptr<Flock> pFlock{};
 	
