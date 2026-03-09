@@ -72,11 +72,13 @@ public:
 
 	// Arrive Behavior
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& Agent) override;
+	
+	void SetTargetRadius(const float TargetRadius) { m_InnerRadius = TargetRadius; }
 protected:
 	FVector2D m_MaxLinearVelocity{};
 	
-	const float m_OuterRadius{ 300.f };
-	const float m_InnerRadius{ 20.f };
+	float m_OuterRadius{ 300.f };
+	float m_InnerRadius{ 20.f };
 
 private:
 };
