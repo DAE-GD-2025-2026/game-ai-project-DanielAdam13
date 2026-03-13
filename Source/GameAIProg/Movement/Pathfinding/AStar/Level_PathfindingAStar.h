@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GraphTheory/Algorithms/Heuristics.h"
@@ -33,11 +31,9 @@ public:
 
 	// Sets default values for this actor's properties
 	ALevel_PathfindingAStar();
-
-	// Called every frame
+	
 	virtual void Tick(float DeltaTime) override;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
 	virtual void BeginDestroy() override;
@@ -47,7 +43,7 @@ protected:
 private:
 	UPROPERTY()
 	ASteeringAgent* Agent{nullptr}; // ref
-	PathFollow PathFollow{};
+	PathFollow PathFollow{}; // Steering Behavior
 	
 	GameAI::TerrainGridGraph* TerrainGraph{nullptr};
 	GameAI::GraphRenderer* Renderer{nullptr};
@@ -56,7 +52,7 @@ private:
 	int PathStartNodeId{44};
 	int PathEndNodeId{88};
 	int SelectedHeuristic = 4;
-	GameAI::HeuristicFunctions::Heuristic HeuristicFunction = GameAI::HeuristicFunctions::Chebyshev;
+	GameAI::HeuristicFunctions::Heuristic HeuristicFunction{ GameAI::HeuristicFunctions::Chebyshev };
 	std::vector<GameAI::Node*> FoundPath{};
 
 	void CalculatePath();
