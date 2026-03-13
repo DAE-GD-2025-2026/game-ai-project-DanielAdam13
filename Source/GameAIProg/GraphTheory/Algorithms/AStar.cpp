@@ -10,22 +10,27 @@ AStar::AStar(Graph* const pGraph, HeuristicFunctions::Heuristic hFunction)
 {
 }
 
-std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
+std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode) const
 {
-	std::vector<Node*> path{};
+	// --------------------------
+	// Path, Open and Closed list initialization with the starting ESTIMATED COST
+	// --------------------------
+	std::vector<Node*> Path{};
 	std::list<NodeRecord> OpenList{};
 	std::list<NodeRecord> ClosedList{};
 	NodeRecord CurrentNodeRecord{};
 	
 	NodeRecord StartRecord;
 	StartRecord.pNode = pStartNode;
-	StartRecord.pConnection = nullptr;
-	StartRecord.costSoFar = 0.f;
-	StartRecord.estimatedTotalCost = GetHeuristicCost( pStartNode, pGoalNode );
+	StartRecord.pConnection = nullptr; // Start connection
+	StartRecord.costSoFar = 0.f; // Starting cost
+	StartRecord.estimatedTotalCost = GetHeuristicCost( pStartNode, pGoalNode ); // Worst-case scenario cost
 	
 	OpenList.push_back( StartRecord );
 	
-	// WHILE LOOP
+	// --------------------------
+	// WHILE LOOP - Populate Open and Closed lists
+	// --------------------------
 	while (!OpenList.empty())
 	{
 		// 1. Get node with the lowest ESTIMATED cost
@@ -41,8 +46,8 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 		{
 			Node* pNextNode{(pGraph->GetNode( pConn->GetToId()).get() )};
 			
-			// Calculate next cost
-			float CostSoFarNext{CurrentNodeRecord.costSoFar + pConn->GetWeight()};
+			// Worst-case scenario cost
+			float CostSoFarNext{ CurrentNodeRecord.costSoFar + pConn->GetWeight() };
 			
 			// 3. Check closed list
 			auto ClosedIterator{std::find_if( ClosedList.begin(), ClosedList.end(), 
@@ -73,7 +78,7 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 			NewRecord.pConnection = pConn;
 			NewRecord.costSoFar = CostSoFarNext;
 			NewRecord.estimatedTotalCost = CostSoFarNext + 
-				GetHeuristicCost( pNextNode, pGoalNode ); // Progress for next conenction
+				GetHeuristicCost( pNextNode, pGoalNode ); // Progress for next connection
 			
 			OpenList.push_back( NewRecord );
 		}
@@ -81,7 +86,29 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 		OpenList.remove( CurrentNodeRecord ); // Remove from nodes to be checked
 		ClosedList.push_back( CurrentNodeRecord ); // Locked in Record for Backtracking...
 	}
-	return path;
+	
+	// --------------------------
+	// BACKTRACKING - Create Path
+	// --------------------------
+	if (CurrentNodeRecord.pNode == pGoalNode) // Open and Closed list are ALREADY correct 
+	{
+		while (CurrentNodeRecord.pNode != pStartNode)
+		{
+			Path.push_back( CurrentNodeRecord.pNode );
+			
+			// Find the connection where the NODE is FROM
+			int	FromID{ CurrentNodeRecord.pConnection->GetFromId() };
+			auto it{std::find_if( ClosedList.begin(), ClosedList.end(),
+				[FromID](const NodeRecord& r) { return r.pNode->GetId() == FromID; })};
+			
+			CurrentNodeRecord = *it;
+		}
+		
+		Path.push_back( pStartNode );
+		std::reverse( Path.begin(), Path.end() );
+	}
+	
+	return Path;
 }
 
 float AStar::GetHeuristicCost(Node* const pStartNode, Node* const pEndNode) const

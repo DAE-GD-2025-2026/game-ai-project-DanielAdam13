@@ -33,7 +33,7 @@ namespace GameAI
 			};
 		};
 
-		std::vector<Node*> FindPath(Node* const pStartNode, Node* const pDestinationNode);
+		std::vector<Node*> FindPath(Node* const pStartNode, Node* const pDestinationNode) const;
 
 	private:
 		float GetHeuristicCost(Node* const pStartNode, Node* const pEndNode) const;
