@@ -49,11 +49,50 @@ int GameAI::NavGraph::GetNodeIdFromEdgeIndex(int EdgeIdx) const
 void GameAI::NavGraph::CreateNavigationGraph()
 {
 	//1. Go over all the edges of the navigation mesh and create nodes
-			// Create node here
+	for (const auto& Edge : pNavPoly->GetEdges())
+	{
+		const FVector& EdgeMidPoint{
+			(Edge.GetP1( *pNavPoly.get() ) + Edge.GetP2( *pNavPoly.get() )) / 2};
+		
+		this->AddNode( std::make_unique<Node>( FVector2D(EdgeMidPoint.X, EdgeMidPoint.Y)) );
+	}
 
 	//2. Create connections now that every node is created	
 		//2 valid nodes -> 1 connection
 		//3 valid nodes -> 3 connections
+	for (const auto& Triangle : pNavPoly->GetTriangles())
+	{
+		std::vector<int> TriangleNodeIndices{};
 		
+		// Find and store all node indices
+		for (const auto& TriEdge : Triangle.GetEdges())
+		{
+			const int EdgeIdx{pNavPoly->FindEdgeIndex( TriEdge ).value_or( -1 )};
+			const int NodeIdx{GetNodeIdFromEdgeIndex( EdgeIdx )};
+			
+			if (NodeIdx != Graphs::InvalidNodeId)
+			{
+				TriangleNodeIndices.push_back( NodeIdx );
+			}
+		}
+		
+		// Then Make connections - 3 for a triangle
+		for (size_t i{}; i < TriangleNodeIndices.size(); ++i)
+		{
+			for (size_t j{ i + 1 }; j < TriangleNodeIndices.size(); ++j)
+			{
+				this->AddConnection( std::make_unique<Connection>( TriangleNodeIndices[i], 
+					TriangleNodeIndices[j]) );
+			}
+		}
+	}
+
 	//3. Set the connections cost to the actual distance
+	for (const auto& Connection : this->GetConnections())
+	{
+		const FVector2D& PosA{ GetNode(Connection->GetFromId())->GetPosition() };
+		const FVector2D& PosB{ GetNode(Connection->GetToId())->GetPosition() };
+		
+		Connection->SetWeight( FVector2D::Distance( PosA, PosB ) );
+	}
 }
