@@ -19,6 +19,7 @@ public class GameAIProg : ModuleRules
 			"EnhancedInput",
 			"AIModule",
 			"NavigationSystem",
+			"Navmesh",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"Niagara",

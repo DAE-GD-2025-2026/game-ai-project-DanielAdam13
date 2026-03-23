@@ -51,7 +51,10 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 			
 			// 3. Check closed list
 			auto ClosedIterator{std::find_if( ClosedList.begin(), ClosedList.end(), 
-				[pNextNode] (const NodeRecord& r) {return r.pNode == pNextNode; })};
+				[pNextNode] (const NodeRecord& R) -> bool
+				{
+					return R.pNode == pNextNode;
+				})};
 			
 			if (ClosedIterator != ClosedList.end())
 			{
@@ -63,7 +66,10 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 			
 			// 4. Check if connection leads to node already in OPEN LIST
 			auto OpenIterator{std::find_if( OpenList.begin(), OpenList.end(), 
-				[pNextNode](const NodeRecord& r) {return r.pNode == pNextNode; })};
+				[pNextNode](const NodeRecord& R) -> bool
+				{
+					return R.pNode == pNextNode;
+				})};
 			
 			if (OpenIterator != OpenList.end())
 			{
@@ -99,7 +105,10 @@ std::vector<Node*>AStar::FindPath(Node* const pStartNode, Node* const pGoalNode)
 			// Find the connection where the NODE is FROM
 			int	FromID{ CurrentNodeRecord.pConnection->GetFromId() };
 			auto it{std::find_if( ClosedList.begin(), ClosedList.end(),
-				[FromID](const NodeRecord& r) { return r.pNode->GetId() == FromID; })};
+				[FromID](const NodeRecord& R) -> bool
+				{
+					return R.pNode->GetId() == FromID;
+				})};
 			
 			CurrentNodeRecord = *it;
 		}
