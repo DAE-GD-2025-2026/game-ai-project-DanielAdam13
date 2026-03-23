@@ -49,17 +49,18 @@ int GameAI::NavGraph::GetNodeIdFromEdgeIndex(int EdgeIdx) const
 void GameAI::NavGraph::CreateNavigationGraph()
 {
 	//1. Go over all the edges of the navigation mesh and create nodes
-	for (const auto& Edge : pNavPoly->GetEdges())
+	for (size_t EdgeIdx{ 0 }; EdgeIdx < pNavPoly->GetEdges().size(); ++EdgeIdx)
 	{
-		const FVector& EdgeMidPoint{
-			(Edge.GetP1( *pNavPoly.get() ) + Edge.GetP2( *pNavPoly.get() )) / 2};
+		const auto& Edge = pNavPoly->GetEdges()[EdgeIdx];
 		
-		this->AddNode( std::make_unique<Node>( FVector2D(EdgeMidPoint.X, EdgeMidPoint.Y)) );
+		const FVector& EdgeMidPoint{
+			(Edge.GetP1( *pNavPoly ) + Edge.GetP2( *pNavPoly )) / 2};
+		
+		this->AddNode( std::make_unique<NavGraphNode>( FVector2D(EdgeMidPoint.X, EdgeMidPoint.Y),
+			EdgeIdx ));
 	}
 
 	//2. Create connections now that every node is created	
-		//2 valid nodes -> 1 connection
-		//3 valid nodes -> 3 connections
 	for (const auto& Triangle : pNavPoly->GetTriangles())
 	{
 		std::vector<int> TriangleNodeIndices{};
@@ -68,6 +69,9 @@ void GameAI::NavGraph::CreateNavigationGraph()
 		for (const auto& TriEdge : Triangle.GetEdges())
 		{
 			const int EdgeIdx{pNavPoly->FindEdgeIndex( TriEdge ).value_or( -1 )};
+			// if (EdgeIdx == -1)
+			// 	continue;
+			
 			const int NodeIdx{GetNodeIdFromEdgeIndex( EdgeIdx )};
 			
 			if (NodeIdx != Graphs::InvalidNodeId)
