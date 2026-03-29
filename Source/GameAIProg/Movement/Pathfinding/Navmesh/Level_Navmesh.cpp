@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Level_Navmesh.h"
 
 #include "NavigationSystem.h"
@@ -10,6 +7,8 @@
 #include "NavMesh/RecastNavMesh.h"
 #include "Runtime/Navmesh/Public/Detour/DetourNavMesh.h"
 #include "Shared/GameAISpectator.h"
+
+#include "../GameAIProg/GraphTheory/Algorithms/NavGraphPathfinding.h"
 
 // Helper
 FORCEINLINE FVector RecastToUnreal(const double* RecastVertex)
@@ -21,14 +20,11 @@ FORCEINLINE FVector RecastToUnreal(const double* RecastVertex)
 	);
 }
 
-// Sets default values
 ALevel_Navmesh::ALevel_Navmesh()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
 void ALevel_Navmesh::BeginPlay()
 {
 	Super::BeginPlay();
@@ -41,7 +37,9 @@ void ALevel_Navmesh::BeginPlay()
 	
 	// Spawn the Agent
 	Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
-	FVector{2100.0,2100.0,90}, FRotator::ZeroRotator);
+	FVector{0.0,0.0,90}, FRotator::ZeroRotator);
+	// why this position?
+	//FVector{2100.0,2100.0,90}, FRotator::ZeroRotator);
 	Agent->SetDebugRenderingEnabled(false);
 	Agent->SetSteeringBehavior(&PathFollow);
 	
@@ -62,7 +60,6 @@ void ALevel_Navmesh::BeginPlay()
 	});
 }
 
-// Called every frame
 void ALevel_Navmesh::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -97,11 +94,17 @@ void ALevel_Navmesh::Tick(float DeltaTime)
 		}
 	}
 	
-	// Todo: Draw the portals travelled through with SSFA
-	// if (bDrawPortals)
-	// {
-	// 	
-	// }
+	// Draw the portals traveled through with SSFA
+	if (bDrawPortals)
+	{
+		for (const GameAI::NavLine& Portal : DebugPortals)
+		{
+			DrawDebugLine( GetWorld(),
+				FVector{Portal.P1, 5.0f},
+				FVector{Portal.P2, 5.0f},
+				FColor::Green, false, -1, 0, 5 );
+		}
+	}
 	
 	UpdateImGui();
 }
@@ -216,7 +219,8 @@ void ALevel_Navmesh::SetTarget()
 {
 	GameAI::NavMeshPathfinding Pathfinder{};
 	std::vector<FVector2D> Path =  Pathfinder.FindPath(Agent->GetPosition(), 
-	FVector2D{LatestMouseWorldPos}, NavigationGraph.get());
+	FVector2D{LatestMouseWorldPos}, NavigationGraph.get(), 
+	DebugNodePositions,DebugPortals);
 
 	DebugDrawPath = Path;
 	

@@ -21,7 +21,7 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	// ----- 1. Get Valid Start/End triangles -----
 	// Get the start and endTriangle
 	const TriPolygon::Triangle* StartTriangle{ NavTriPolygon->GetTriangleAtPosition( startPos, false ) };
-	const TriPolygon::Triangle* EndTriangle{ NavTriPolygon->GetTriangleAtPosition( startPos, false ) };
+	const TriPolygon::Triangle* EndTriangle{ NavTriPolygon->GetTriangleAtPosition( endPos, false ) };
 	
 	// Check if we have valid start/end triangles and they are not the same
 	if (!StartTriangle || !EndTriangle || StartTriangle == EndTriangle)
@@ -60,8 +60,8 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	// Connect end node to all nodes on the edges of the end triangle
 	for (const auto& TriEdge : EndTriangle->GetEdges())
 	{
-		const int EdgeIdx   = NavTriPolygon->FindEdgeIndex(TriEdge).value_or(-1);
-		const int NodeId    = ClonedGraph->GetNodeIdFromEdgeIndex(EdgeIdx);
+		const int EdgeIdx = NavTriPolygon->FindEdgeIndex(TriEdge).value_or(-1);
+		const int NodeId = ClonedGraph->GetNodeIdFromEdgeIndex(EdgeIdx);
     
 		if (NodeId != Graphs::InvalidNodeId)
 		{
@@ -76,7 +76,10 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	// ------- 3. Run A star on new graph -------
 	const AStar Pathfinder { AStar(ClonedGraph.get(), HeuristicFunctions::Euclidean) };
 	
-	const std::vector<Node*> PathNodes{ Pathfinder.FindPath( StartNode.get(), EndNode.get() ) };
+	// Need to find by id since Start and End Node are moved
+	const std::vector<Node*> PathNodes{ Pathfinder.FindPath( 
+		ClonedGraph->GetNode(StartNodeId).get(), 
+		 ClonedGraph->GetNode(EndNodeId).get() ) };
 	
 	for (const Node* FinalNode : PathNodes)
 	{
@@ -84,10 +87,14 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	}
 	
 	//Debug Visualisation
-
+	
 	// Extra: Run optimiser on new graph (First check if everything works without SSFA!)
-	// debugPortals = SSFA::FindPortals(nodes, *pNavGraph->GetNavPolygon());
-	// finalPath = SSFA::OptimizePortals(debugPortals, *pNavGraph->GetNavPolygon());
+	// for (const auto& pNode : ClonedGraph->GetNodes())
+	// {
+	// 	debugNodePositions.push_back(pNode->GetPosition());
+	// }
+	// debugPortals = SSFA::FindPortals(PathNodes, *pNavGraph->GetNavPolygon());
+	// FinalPath = SSFA::OptimizePortals(debugPortals, *pNavGraph->GetNavPolygon());
 	
 	return FinalPath;
 }

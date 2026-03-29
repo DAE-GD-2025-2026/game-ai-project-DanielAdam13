@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GraphTheory/Level_GraphTheory.h"
+#include "GraphTheory/Algorithms/NavGraphPathfinding.h"
 #include "Shared/Graph/NavGraph/NavGraph.h"
 #include "Level_Navmesh.generated.h"
 
@@ -49,4 +50,8 @@ private:
 	
 	// Input functions
 	void SetTarget();
+	
+	// For debug draws:
+	std::vector<FVector2D> DebugNodePositions{};
+	std::vector<GameAI::NavLine> DebugPortals{};
 };
