@@ -60,30 +60,105 @@ public:
 	static std::vector<FVector2D> OptimizePortals( std::vector<NavLine> const & Portals, TriPolygon const & NavPoly)
 	{
 		std::vector<FVector2D> Path{};
-		//P1 == right point of portal, P2 == left point of portal
 		
-			//--- RIGHT CHECK ---
-			//1. See if moving funnel inwards - RIGHT
+		FVector2D ApexPoint{ Portals[0].P1 };
+		Path.push_back( ApexPoint );
+		
+		// Right and Left "legs" before the optimization:
+		FVector2D RightLeg{ Portals[1].P1 - ApexPoint };
+		FVector2D LeftLeg{ Portals[1].P2 - ApexPoint };
+		size_t RightLegIndex{ 1 };
+		size_t LeftLegIndex{ 1 };
+		
+		for (size_t i{ 1 }; i < Portals.size(); ++i)
+		{
+			//P1 == right point of portal, P2 == left point of portal
+			NavLine CurrentPortal{ Portals[i] };
 			
-				//2. See if new line degenerates a line segment - RIGHT
+			//--- RIGHT CHECK ---
+			const FVector2D NewRightLeg{ CurrentPortal.P1 - ApexPoint };
+
+			//1. See if moving funnel inwards - RIGHT
+			const float RightCross{ static_cast<float>(RightLeg.X * NewRightLeg.Y - RightLeg.Y * NewRightLeg.X) };
+			
+			// If inwards (CCW)
+			if (RightCross <= 0.f)
+			{
+				const float LeftCross{ static_cast<float>(LeftLeg.X * NewRightLeg.Y - LeftLeg.Y * NewRightLeg.X) };
 				
-					//Leftleg becomes new apex point
-
+				//2. See if new line degenerates a line segment - RIGHT
+				// If crossed over left leg
+				if (LeftCross > 0.f)
+				{
+					// Leftleg becomes new apex point
+					// Update Apex to left leg tip
+					ApexPoint = Portals[LeftLegIndex].P2;
+					
+					// UPDATE PORTAL INDEX
+					size_t ApexIndex{ LeftLegIndex };
+					i = ApexIndex + 1;
+					
 					//Calculate new legs (if not the end)
+					RightLegIndex = i; // reset both legs to new portal
+					LeftLegIndex = i;  // reset both legs to new portal
+					
+					Path.push_back( ApexPoint );
 
-
+					if (i < Portals.size())
+					{
+						RightLeg = Portals[RightLegIndex].P1 - ApexPoint;
+						LeftLeg = Portals[LeftLegIndex].P2 - ApexPoint;
+					}
+					continue;
+				}
+				else
+				{
+					RightLeg = NewRightLeg;
+					RightLegIndex = i;
+				}
+			}
+			
 			//--- LEFT CHECK ---
 			//1. See if moving funnel inwards - LEFT
+			const FVector2D NewLeftLeg{ CurrentPortal.P2 - ApexPoint };
+			const float NewLeftCross{ static_cast<float>(LeftLeg.X * NewLeftLeg.Y - LeftLeg.Y * NewLeftLeg.X) };
 
-				//2. See if new line degenerates a line segment - LEFT
+			//2. See if new line degenerates a line segment - LEFT
+			if (NewLeftCross >= 0.f) // Going inwards (CW)
+			{
+				const float RightCrossLeft{ static_cast<float>(RightLeg.X * NewLeftLeg.Y - RightLeg.Y * NewLeftLeg.X) };
 
-					//Rightleg becomes new apex point
-
+				if (RightCrossLeft < 0.f) // Crossed over right leg -> new apex
+				{
+					// Rightleg becomes new apex point
+					ApexPoint = Portals[RightLegIndex].P1;
+					// Update the portal index
+					i = RightLegIndex + 1;
+					
 					//Calculate new legs (if not the end)
+					RightLegIndex = i;
+					LeftLegIndex  = i;
 
+					Path.push_back(ApexPoint);
+
+					if (i < Portals.size())
+					{
+						RightLeg = Portals[i].P1 - ApexPoint;
+						LeftLeg  = Portals[i].P2 - ApexPoint;
+					}
+					continue;
+				}
+				else // Tighten left
+				{
+					LeftLeg = NewLeftLeg;
+					LeftLegIndex = i;
+				}
+			}
+		}
 
 		// Add last path point
-
+		Path.push_back( Portals.back().P1 );
+		
 		return Path;
 	}
 private:

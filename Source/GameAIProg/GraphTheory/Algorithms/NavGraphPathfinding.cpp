@@ -89,12 +89,20 @@ std::vector<FVector2D> NavMeshPathfinding::FindPath(const FVector2D& startPos, c
 	//Debug Visualisation
 	
 	// Extra: Run optimiser on new graph (First check if everything works without SSFA!)
-	// for (const auto& pNode : ClonedGraph->GetNodes())
-	// {
-	// 	debugNodePositions.push_back(pNode->GetPosition());
-	// }
-	// debugPortals = SSFA::FindPortals(PathNodes, *pNavGraph->GetNavPolygon());
-	// FinalPath = SSFA::OptimizePortals(debugPortals, *pNavGraph->GetNavPolygon());
+	for (const auto& pNode : ClonedGraph->GetNodes())
+	{
+		debugNodePositions.push_back(pNode->GetPosition());
+	}
+	
+	if (!PathNodes.empty())
+	{
+		debugPortals = SSFA::FindPortals(PathNodes, *pNavGraph->GetNavPolygon());
+		const std::vector<FVector2D> SmoothedPath = 
+			SSFA::OptimizePortals(debugPortals, *pNavGraph->GetNavPolygon());
+		
+		if (!SmoothedPath.empty())
+			FinalPath = SmoothedPath;
+	}
 	
 	return FinalPath;
 }
