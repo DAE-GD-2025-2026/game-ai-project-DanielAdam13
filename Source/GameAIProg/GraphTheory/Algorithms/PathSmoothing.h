@@ -20,13 +20,39 @@ public:
 		//Container
 		std::vector<NavLine> Portals = {};
 		
-		//For each node received, get it's corresponding line
+		// 1. Get and add Start Pos to the Portals
+		const FVector2D StartPos{ Path[0]->GetPosition() };
+		Portals.push_back(NavLine(StartPos, StartPos));
 		
-			//Redetermine it's "orientation" based on the required path (left-right vs right-left) - p1 should be right point
-
+		//For each node received, get it's corresponding line
+		for (size_t i{ 1 }; i < Path.size() - 1; ++i)
+		{
+			const auto* NavNode{ static_cast<const NavGraphNode*>(Path[i]) };
+			int EdgeIdx{ NavNode->GetEdgeIdx() };
+			
+			const auto& Edge{ NavPoly.GetEdges()[EdgeIdx] };
+			
+			FVector2D P1{ FVector2D(Edge.GetP1( NavPoly )) };
+			FVector2D P2{ FVector2D(Edge.GetP2( NavPoly )) };
+			
+			// --- Determine direction ---
+			const FVector2D PathPos{ Path[i - 1]->GetPosition() };
+			const FVector2D Dir{ Path[i]->GetPosition() - PathPos };
+	
+			//Redetermine it's "orientation" based on the required path (left-right vs right-left) - 
+			//p1 should be right point
+			const float Cross{ static_cast<float>(Dir.X * (P1.Y - P2.Y) - Dir.Y * (P1.X - P2.X)) };
+			
+			if (Cross > 0.f)
+				Swap( P1, P2 );
+			
 			//Store portal
-
+			Portals.push_back( NavLine(P1, P2) );
+		}
+		
 		//Add degenerate portal to force end evaluation
+		const FVector2D EndPos{ Path.back()->GetPosition() };
+		Portals.push_back(NavLine(EndPos, EndPos));
 
 		return Portals;
 	}
