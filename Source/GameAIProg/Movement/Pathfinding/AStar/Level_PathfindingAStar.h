@@ -64,4 +64,9 @@ private:
 	void SetStartNodeId();
 	void SetEndNodeId();
 	void SetNodeTerrain(GameAI::TerrainNode::Type TerrainType);
+	
+	bool bDrawGrid{false};
+	bool bDrawNodeNumbers{false};
+	bool bDrawConnections{false};
+	bool bDrawConnectionsCosts{false};
 };
