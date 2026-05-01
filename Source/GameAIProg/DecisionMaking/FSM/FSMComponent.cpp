@@ -1,30 +1,43 @@
 #include "FSMComponent.h"
 
+#include "AIController.h"
+#include "FSM.h"
+#include "State.h"
+#include "Transition.h"
+
 
 UFSMComponent::UFSMComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// TODO Setup FSM
+	// Create FSM unique_ptr
+	FSMInstance = std::make_unique<GameAI::FSM::FSM>();
 }
 
-
-void UFSMComponent::AddState(std::unique_ptr<GameAI::FSM::State>&& NewState)
+GameAI::FSM::State* UFSMComponent::AddState(std::unique_ptr<GameAI::FSM::State>&& NewState)
 {
-	// TODO
+	if (!FSMInstance)
+		return nullptr;
+	
+	return FSMInstance->AddState( std::move( NewState ) );
 }
 
 void UFSMComponent::AddTransition(GameAI::FSM::State* From, GameAI::FSM::State* To, std::function<bool()> EvalFunc) const
 {
-	// TODO
+	if (FSMInstance)
+		FSMInstance->AddTransition( From, To, std::move(EvalFunc) );
+		
 }
 
 // Called when the game starts
 void UFSMComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	if (AAIController* AI = Cast<AAIController>( GetOwner() ))
+	{
+		FSMInstance->SetController( AI );
+	}
 }
 
 
@@ -32,23 +45,33 @@ void UFSMComponent::BeginPlay()
 void UFSMComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	// TODO
+	
+	if (FSMInstance)
+		FSMInstance->Tick( DeltaTime );
 }
 
 void UFSMComponent::StartLogic()
 {
 	Super::StartLogic();
 
-	// TODO
+	if (FSMInstance) 
+		FSMInstance->Start();
 }
 
 void UFSMComponent::StopLogic(const FString& Reason)
 {
-	// TODO
+	if (FSMInstance) 
+		FSMInstance->Stop();
 }
 
 bool UFSMComponent::IsRunning() const
 {
-	return bIsRunning;
+	return FSMInstance && FSMInstance->IsRunning();
+}
+
+void UFSMComponent::SetBlackboard(UBlackboardComponent* InBlackboard)
+{
+	if (FSMInstance)
+		FSMInstance->SetBlackboard( InBlackboard );
 }
 

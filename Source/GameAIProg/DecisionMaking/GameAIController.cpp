@@ -38,6 +38,9 @@ void AGameAIController::InitFiniteStateMachine()
 		UBlackboardComponent* BlackboardComp = Blackboard;
 		UseBlackboard(FSMBlackboardAsset, BlackboardComp);
 		Blackboard = BlackboardComp;
+		
+		// set blackboard!!!
+		FSMComp->SetBlackboard( Blackboard );
 	}
 }
 

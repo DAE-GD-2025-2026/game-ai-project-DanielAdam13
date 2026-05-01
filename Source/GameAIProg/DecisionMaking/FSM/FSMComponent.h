@@ -10,7 +10,6 @@
 namespace GameAI::FSM
 {
 	class State;
-	class Transition;
 	class FSM; // contains FSM logic
 }
 
@@ -29,10 +28,12 @@ public:
 	
 	virtual void StartLogic() override;
 	virtual void StopLogic(const FString& Reason) override;
+	virtual bool IsRunning() const override;
 	
-	virtual bool IsRunning() const override; 
+	// In level
+	void SetBlackboard(UBlackboardComponent* InBlackboard);
 	
-	void AddState(std::unique_ptr<GameAI::FSM::State>&& NewState);
+	GameAI::FSM::State* AddState(std::unique_ptr<GameAI::FSM::State>&& NewState);
 	void AddTransition(GameAI::FSM::State* From, GameAI::FSM::State* To, std::function<bool()> EvalFunc) const;
 		
 protected:
@@ -40,6 +41,5 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	//std::unique_ptr<GameAI::FSM::FSM> FSMInstance;
-	bool bIsRunning{false};
+	std::unique_ptr<GameAI::FSM::FSM> FSMInstance; // FSM CLASS manages everything and is OWNED by the component
 };
