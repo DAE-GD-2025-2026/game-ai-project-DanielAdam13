@@ -10,7 +10,8 @@
 using namespace GameAI::FSM;
 
 PatrolState::PatrolState(const std::vector<FVector2D>& InPatrolPath)
-	:PatrolPath( InPatrolPath )
+	:PatrolPath( InPatrolPath ),
+PathBehavior( new PathFollow() )
 {
 }
 
@@ -31,7 +32,7 @@ void PatrolState::OnEnter()
 
 void PatrolState::OnUpdate(float DeltaTime)
 {
-	GameAi::FSM::UpdateTargetVisibility( GetController(), GetBlackboard(), {} );
+	GameAI::FSM::UpdateTargetVisibility( GetController(), GetBlackboard(), {} );
 	
 	if (auto* Agent =Cast<ASteeringAgent>(GetController()->GetPawn()))
 	{

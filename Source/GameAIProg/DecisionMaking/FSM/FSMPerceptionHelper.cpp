@@ -8,7 +8,7 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 
-namespace GameAi::FSM
+namespace GameAI::FSM
 {
 	bool UpdateTargetVisibility(AAIController* Controller, UBlackboardComponent* BlackboardComponent,
 		const PerceptionParams& Params)
@@ -29,7 +29,7 @@ namespace GameAi::FSM
 		const FVector TargetLocation{ Target->GetActorLocation() };
 		
 		// 1. RADIUS
-		const float DistSqr{ static_cast<float>(FVector::Dist( SelfLocation, TargetLocation )) };
+		const float DistSqr{ static_cast<float>(FVector::DistSquared( SelfLocation, TargetLocation )) };
 		if (DistSqr > Params.DetectionRadius * Params.DetectionRadius)
 		{
 			BlackboardComponent->SetValueAsBool( GameAI::FSM::BBKeys::IsTargetVisible, false );

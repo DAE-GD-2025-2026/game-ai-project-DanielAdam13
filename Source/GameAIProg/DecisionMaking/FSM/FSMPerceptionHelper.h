@@ -7,7 +7,7 @@ class AAIController;
 class UBlackboardComponent;
 class AActor;
 
-namespace GameAi::FSM
+namespace GameAI::FSM
 {
 	// CUSTOM values
 	struct PerceptionParams

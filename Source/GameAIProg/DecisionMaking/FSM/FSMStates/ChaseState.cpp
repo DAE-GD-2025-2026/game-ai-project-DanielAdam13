@@ -31,7 +31,7 @@ void ChaseState::OnEnter()
 
 void ChaseState::OnUpdate(float DeltaTime)
 {
-	GameAi::FSM::UpdateTargetVisibility(GetController(), GetBlackboard(), {});
+	GameAI::FSM::UpdateTargetVisibility(GetController(), GetBlackboard(), {});
 	
 	// Re-target the seek every frame at the player's current location
 	if (AActor* Target = Cast<AActor>(GetBlackboard()->GetValueAsObject(BBKeys::TargetActor)))

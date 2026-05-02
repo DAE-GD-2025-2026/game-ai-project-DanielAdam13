@@ -47,7 +47,7 @@ void SearchState::OnUpdate(float DeltaTime)
 	const float SearchTimer{ GetBlackboard()->GetValueAsFloat( BBKeys::SearchTimer ) };
 	GetBlackboard()->SetValueAsFloat( BBKeys::SearchTimer, SearchTimer + DeltaTime );
 	
-	GameAi::FSM::UpdateTargetVisibility( GetController(), GetBlackboard(), {} );
+	GameAI::FSM::UpdateTargetVisibility( GetController(), GetBlackboard(), {} );
 	
 	// Wander:
 	if (!bReachedLastSeen)
@@ -56,7 +56,7 @@ void SearchState::OnUpdate(float DeltaTime)
 		{
 			const FVector LastSeenLoc{ GetBlackboard()->GetValueAsVector(BBKeys::LastSeenLocation)};
 			const FVector2D LastSeen2D{ LastSeenLoc.X, LastSeenLoc.Y };
-			const float ArriveRadius{ 60.f };
+			constexpr float ArriveRadius{ 60.f };
 
 			if (FVector2D::DistSquared(Agent->GetPosition(), LastSeen2D)
 				< ArriveRadius * ArriveRadius)
